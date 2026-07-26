@@ -1,138 +1,189 @@
 #include <pebble.h>
 
-#include "bitmap.h"
-#include "Upright.h"
+#define SENSOR_RATE ACCEL_SAMPLING_50HZ
+#define CIRCLE_RADIUS 43
 
-#define TRIG_HALF_MAX_ANGLE 0x8000
-#define TRIG_QUARTER_MAX_ANGLE 0x4000
-#define TRIG_THREE_QUARTER_MAX_ANGLE 0xC000
+static Window *s_window;
+static Layer *s_canvas_layer;
+static GFont s_digit_font;
 
-static Window *window;
-static Layer *layer;
-static GBitmap *source;
-static GBitmap *digit[11];
-static int num[4] = { 0, 0, 0, 0 };
+static int32_t s_angle = TRIG_MAX_ANGLE / 4;
+static int s_numbers[4] = {0, 0, 0, 0};
 
-static GPoint pos[4] = { {1, 1}, {73, 1}, {1, 73}, {73, 73} };
-AppTimer *timer;
-
-const int IMAGE_RESOURCE_IDS[11] = {
-  RESOURCE_ID_IMAGE_T0,
-  RESOURCE_ID_IMAGE_T1, RESOURCE_ID_IMAGE_T2, RESOURCE_ID_IMAGE_T3,
-  RESOURCE_ID_IMAGE_T4, RESOURCE_ID_IMAGE_T5, RESOURCE_ID_IMAGE_T6,
-  RESOURCE_ID_IMAGE_T7, RESOURCE_ID_IMAGE_T8, RESOURCE_ID_IMAGE_T9,
-  RESOURCE_ID_IMAGE_T1_2
+static const GPoint SQUARE_CENTER = {100, 100};
+static const GPoint BASE_CENTERS[4] = {
+  {50, 50},
+  {150, 50},
+  {50, 150},
+  {150, 150}
 };
 
-uint16_t squareRoot(uint16_t x) {
-  uint16_t a, b;
+static void update_time_digits(const struct tm *time_now) {
+  if (!time_now) {
+    return;
+  }
 
-  b = x;
-  a = x = 0x3f;
-  x = b/x;
-  a = x = (x+a)>>1;
-  x = b/x;
-  a = x = (x+a)>>1;
-  x = b/x;
-  x = (x+a)>>1;
+  int hour = time_now->tm_hour;
 
-  return x;
-}
-
-void updateLayer(Layer *layer, GContext *ctx) {
-  graphics_draw_bitmap_in_rect(ctx, &bitmap, GRect(0, 0, 144, 168));
-}
-
-static void handle_tick(struct tm *now, TimeUnits units_changed) {
-  int i;
-  int h = now->tm_hour;
   if (!clock_is_24h_style()) {
-    h = (h>12)?h-12:((h==0)?12:h);
+    hour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
   }
-  
-  num[0] = h/10;
-  num[1] = h%10;
-  num[2] = now->tm_min/10;
-  num[3] = now->tm_min%10;
 
-  if (num[0] == 1) num[0] = 10;
-  if (num[2] == 1) num[2] = 10;
+  s_numbers[0] = hour / 10;
+  s_numbers[1] = hour % 10;
+  s_numbers[2] = time_now->tm_min / 10;
+  s_numbers[3] = time_now->tm_min % 10;
+}
 
-  for (i=0; i<4; i++) {
-    bmpCopyTo(digit[num[i]], source, pos[i]);
+static void tick_handler(struct tm *time_now, TimeUnits units_changed) {
+  (void)units_changed;
+  update_time_digits(time_now);
+
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);
   }
 }
 
-static void handle_timer(void *data) {
-  static int32_t angle = TRIG_MAX_ANGLE/4;
-  static AccelData ad;
-  int32_t a;
+static void update_smoothed_angle(int32_t measured_angle) {
+  int32_t difference = measured_angle - s_angle;
+  const int32_t half_turn = TRIG_MAX_ANGLE / 2;
 
-	accel_service_peek(&ad);
-  a = atan2_lookup(ad.y, ad.x);
-
-  if ( (angle < TRIG_QUARTER_MAX_ANGLE) && (a > TRIG_THREE_QUARTER_MAX_ANGLE) ) {
-    angle = (2*angle + a - TRIG_MAX_ANGLE) / 3;
-    if (angle < 0) {
-      angle += TRIG_MAX_ANGLE;
-    }
-  } else if ( (angle > TRIG_THREE_QUARTER_MAX_ANGLE) && (a < TRIG_QUARTER_MAX_ANGLE)) {
-    angle = (2*angle + a + TRIG_MAX_ANGLE) / 3;
-    if (angle > TRIG_MAX_ANGLE) {
-      angle -= TRIG_MAX_ANGLE;
-    }
-  } else {
-    angle = (2*angle + a) / 3;
+  if (difference > half_turn) {
+    difference -= TRIG_MAX_ANGLE;
+  } else if (difference < -half_turn) {
+    difference += TRIG_MAX_ANGLE;
   }
 
+  /*
+   * Follow half of the remaining difference each sample.
+   * This feels noticeably snappier than the previous 1/3 filter.
+   */
+  s_angle += difference / 2;
 
-  bmpFillColor(&bitmap, GColorBlack);
-  bmpRotate(source, &bitmap, 270-(angle*360)/TRIG_MAX_ANGLE, NULL, GPoint(72, 72), GPoint(0, 0));
-  layer_mark_dirty(layer);
-  timer = app_timer_register(50, handle_timer, NULL);
+  if (s_angle < 0) {
+    s_angle += TRIG_MAX_ANGLE;
+  } else if (s_angle >= TRIG_MAX_ANGLE) {
+    s_angle -= TRIG_MAX_ANGLE;
+  }
 }
 
-static void handleAccel(AccelData *data, uint32_t num_samples) {
-	// return;
+static void accel_data_handler(AccelData *data, uint32_t num_samples) {
+  if (!data || num_samples == 0) {
+    return;
+  }
+
+  const AccelData latest = data[num_samples - 1];
+
+  if (latest.did_vibrate) {
+    return;
+  }
+
+  update_smoothed_angle(atan2_lookup(latest.y, latest.x));
+
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);
+  }
+}
+
+static GPoint rotate_point(GPoint point, GPoint center, int32_t angle) {
+  const int32_t sin_value = sin_lookup(angle);
+  const int32_t cos_value = cos_lookup(angle);
+
+  const int32_t dx = point.x - center.x;
+  const int32_t dy = point.y - center.y;
+
+  return GPoint(
+      center.x + (int16_t)((cos_value * dx - sin_value * dy) / TRIG_MAX_RATIO),
+      center.y + (int16_t)((sin_value * dx + cos_value * dy) / TRIG_MAX_RATIO));
+}
+
+static void draw_digit_circle(GContext *ctx,
+                              GPoint center,
+                              int digit) {
+  char text[2];
+  snprintf(text, sizeof(text), "%d", digit);
+
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_circle(ctx, center, CIRCLE_RADIUS);
+
+  graphics_context_set_text_color(ctx, GColorBlack);
+
+  GRect text_box = GRect(
+      center.x - CIRCLE_RADIUS,
+      center.y - 28,
+      CIRCLE_RADIUS * 2,
+      56);
+
+  graphics_draw_text(
+      ctx,
+      text,
+      s_digit_font,
+      text_box,
+      GTextOverflowModeTrailingEllipsis,
+      GTextAlignmentCenter,
+      NULL);
+}
+
+static void canvas_update_proc(Layer *layer, GContext *ctx) {
+  const GRect bounds = layer_get_bounds(layer);
+
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+
+  int32_t rotation = DEG_TO_TRIGANGLE(270) - s_angle;
+
+  while (rotation < 0) {
+    rotation += TRIG_MAX_ANGLE;
+  }
+
+  while (rotation >= TRIG_MAX_ANGLE) {
+    rotation -= TRIG_MAX_ANGLE;
+  }
+
+  for (int i = 0; i < 4; ++i) {
+    const GPoint rotated_center =
+        rotate_point(BASE_CENTERS[i], SQUARE_CENTER, rotation);
+
+    draw_digit_circle(ctx, rotated_center, s_numbers[i]);
+  }
 }
 
 static void init(void) {
-  Layer *rootLayer;
-  time_t now;
-  
-  window = window_create();
-  window_set_background_color(window, GColorBlack);
-  window_stack_push(window, true);
+  s_window = window_create();
+  window_set_background_color(s_window, GColorBlack);
 
-  source = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_SQUARE);
-  for (int i=0; i<11; i++) {
-    digit[i] = gbitmap_create_with_resource(IMAGE_RESOURCE_IDS[i]);
-  }
+  Layer *root_layer = window_get_root_layer(s_window);
 
-  handle_tick(localtime(&now), 0);
+  s_canvas_layer = layer_create(layer_get_bounds(root_layer));
+  layer_set_update_proc(s_canvas_layer, canvas_update_proc);
+  layer_add_child(root_layer, s_canvas_layer);
 
-  rootLayer = window_get_root_layer(window);
-  
-  layer = layer_create(layer_get_frame(rootLayer));
-  layer_set_update_proc(layer, updateLayer);
-  layer_add_child(rootLayer, layer);
+  s_digit_font = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
 
-  accel_data_service_subscribe(0, handleAccel);
+  const time_t now = time(NULL);
+  update_time_digits(localtime(&now));
 
-  timer = app_timer_register(0, handle_timer, NULL);
-  tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+  accel_service_set_sampling_rate(SENSOR_RATE);
+  accel_data_service_subscribe(1, accel_data_handler);
+
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+
+  window_stack_push(s_window, true);
 }
 
 static void deinit(void) {
   accel_data_service_unsubscribe();
-  app_timer_cancel(timer);
   tick_timer_service_unsubscribe();
-  layer_destroy(layer);
-  for (int i=0; i<11; i++) {
-    gbitmap_destroy(digit[i]);
+
+  if (s_canvas_layer) {
+    layer_destroy(s_canvas_layer);
+    s_canvas_layer = NULL;
   }
-  gbitmap_destroy(source);
-  window_destroy(window);
+
+  if (s_window) {
+    window_destroy(s_window);
+    s_window = NULL;
+  }
 }
 
 int main(void) {

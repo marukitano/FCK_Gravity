@@ -1,10 +1,10 @@
 {
   "uuid": "bcfb9058-4ff8-4c65-aca8-a48593e2038a",
-  "shortName": "Upright",
-  "longName": "Upright",
-  "companyName": "Jnm",
+  "shortName": "Gravity",
+  "longName": "Gravity",
+  "companyName": "Maru",
   "versionCode": 1,
-  "versionLabel": "1.0",
+  "versionLabel": "0.1.0",
   "watchapp": {
     "watchface": true
   },
@@ -14,69 +14,93 @@
   "resources": {
     "media": [
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_SQUARE",
-        "file": "images/square.png"
+        "file": "images/square.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T0",
-        "file": "images/t0.png"
+        "file": "images/t0.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T1",
-        "file": "images/t1.png"
+        "file": "images/t1.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T1_2",
-        "file": "images/t1_2.png"
+        "file": "images/t1_2.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T2",
-        "file": "images/t2.png"
+        "file": "images/t2.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T3",
-        "file": "images/t3.png"
+        "file": "images/t3.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T4",
-        "file": "images/t4.png"
+        "file": "images/t4.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T5",
-        "file": "images/t5.png"
+        "file": "images/t5.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T6",
-        "file": "images/t6.png"
+        "file": "images/t6.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T7",
-        "file": "images/t7.png"
+        "file": "images/t7.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T8",
-        "file": "images/t8.png"
+        "file": "images/t8.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "IMAGE_T9",
-        "file": "images/t9.png"
+        "file": "images/t9.png",
+        "memoryFormat": "1Bit",
+        "spaceOptimization": "memory"
       }
     ]
   },
   "targetPlatforms": [
-    "aplite"
+    "emery"
   ],
   "sdkVersion": "3"
 }
