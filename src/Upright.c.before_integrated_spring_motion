@@ -5,21 +5,28 @@
 #define SENSOR_BATCH_SIZE 1
 #define FRAME_INTERVAL_MS 56
 
+#define DISPLAY_DEADZONE (TRIG_MAX_ANGLE / 720)
+
 /*
- * Eine einzige gedämpfte Feder steuert die sichtbare Bewegung.
- * Dadurch entstehen Nachlauf und Übersteuern fließend aus
- * derselben Bewegung, ohne nachträglich gestarteten Bounce.
+ * Kleiner gedämpfter Feder-Bounce:
+ *
+ * Die eigentliche Kegelbahn bleibt unverändert. Nur die
+ * sichtbare Darstellung erhält etwas Trägheit und läuft am
+ * Bewegungsende kurz über das Ziel hinaus.
  */
-#define DISPLAY_SPRING_NUMERATOR 24
-#define DISPLAY_SPRING_DENOMINATOR 32
+#define BOUNCE_INJECTION_DIVISOR 4
 
-#define DISPLAY_DAMPING_NUMERATOR 15
-#define DISPLAY_DAMPING_DENOMINATOR 32
+#define BOUNCE_SPRING_NUMERATOR 5
+#define BOUNCE_SPRING_DENOMINATOR 32
 
-#define DISPLAY_MAX_VELOCITY DEG_TO_TRIGANGLE(32)
+#define BOUNCE_DAMPING_NUMERATOR 23
+#define BOUNCE_DAMPING_DENOMINATOR 32
 
-#define DISPLAY_STOP_ERROR (TRIG_MAX_ANGLE / 1800)
-#define DISPLAY_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
+#define BOUNCE_MAX_OFFSET DEG_TO_TRIGANGLE(4)
+#define BOUNCE_MAX_VELOCITY DEG_TO_TRIGANGLE(2)
+
+#define BOUNCE_STOP_OFFSET (TRIG_MAX_ANGLE / 2400)
+#define BOUNCE_STOP_VELOCITY (TRIG_MAX_ANGLE / 3600)
 
 #define SLOT_COUNT 4
 
@@ -84,10 +91,11 @@ static int32_t s_cone_angle = TRIG_MAX_ANGLE / 4;
 static int32_t s_display_angle = TRIG_MAX_ANGLE / 4;
 
 /*
- * Geschwindigkeit der sichtbaren Federbewegung.
- * Nachlauf und Übersteuern entstehen direkt daraus.
+ * Der Bounce ist nur ein visueller Offset zur stabilen
+ * Kegelbahn. Er verändert nicht die eigentliche Physik.
  */
-static int32_t s_display_velocity = 0;
+static int32_t s_bounce_offset = 0;
+static int32_t s_bounce_velocity = 0;
 
 static bool s_cone_initialized = false;
 
@@ -405,58 +413,100 @@ static void accel_data_handler(
   s_cone_angle =
       normalize_angle(
           s_cone_angle + angle_step);
+
+  /*
+   * Ein Teil der aktuellen Bewegung wird als Trägheitsimpuls
+   * an die visuelle Feder übergeben.
+   */
+  int32_t bounce_impulse =
+      angle_step / BOUNCE_INJECTION_DIVISOR;
+
+  s_bounce_velocity =
+      clamp_i32(
+          s_bounce_velocity + bounce_impulse,
+          -BOUNCE_MAX_VELOCITY,
+          BOUNCE_MAX_VELOCITY);
 }
 
 static void frame_timer_handler(void *context) {
   (void)context;
 
-  const int32_t error =
+  bool needs_redraw = false;
+
+  const int32_t difference =
       shortest_angle_difference(
           s_display_angle,
           s_cone_angle);
 
-  /*
-   * Eine einzige Federbewegung:
-   *
-   * - der Fehler zum Ziel erzeugt Beschleunigung
-   * - die aktuelle Geschwindigkeit erzeugt Nachlauf
-   * - die Dämpfung beruhigt die Bewegung wieder
-   *
-   * Dadurch beginnt das Übersteuern schon aus der laufenden
-   * Bewegung heraus und nicht erst nach einem sichtbaren Stopp.
-   */
-  const int32_t acceleration =
-      (error
-       * DISPLAY_SPRING_NUMERATOR)
-      / DISPLAY_SPRING_DENOMINATOR;
+  if (absolute_i32(difference)
+      > DISPLAY_DEADZONE) {
+    int32_t step = (difference * 9) / 20;
 
-  s_display_velocity += acceleration;
+    if (step == 0) {
+      step = difference > 0 ? 1 : -1;
+    }
 
-  s_display_velocity =
-      (s_display_velocity
-       * DISPLAY_DAMPING_NUMERATOR)
-      / DISPLAY_DAMPING_DENOMINATOR;
-
-  s_display_velocity =
-      clamp_i32(
-          s_display_velocity,
-          -DISPLAY_MAX_VELOCITY,
-          DISPLAY_MAX_VELOCITY);
-
-  if (absolute_i32(error)
-          <= DISPLAY_STOP_ERROR
-      && absolute_i32(s_display_velocity)
-          <= DISPLAY_STOP_VELOCITY) {
-    s_display_angle = s_cone_angle;
-    s_display_velocity = 0;
-  } else {
     s_display_angle =
         normalize_angle(
-            s_display_angle
-            + s_display_velocity);
+            s_display_angle + step);
+
+    needs_redraw = true;
   }
 
-  if (s_canvas_layer) {
+  /*
+   * Gedämpfte Feder:
+   * Die Feder zieht den Offset zurück zu null, während die
+   * Dämpfung verhindert, dass er endlos weiterschwingt.
+   */
+  if (s_bounce_offset != 0
+      || s_bounce_velocity != 0) {
+    const int32_t spring_force =
+        -(s_bounce_offset
+          * BOUNCE_SPRING_NUMERATOR)
+        / BOUNCE_SPRING_DENOMINATOR;
+
+    s_bounce_velocity += spring_force;
+
+    s_bounce_velocity =
+        (s_bounce_velocity
+         * BOUNCE_DAMPING_NUMERATOR)
+        / BOUNCE_DAMPING_DENOMINATOR;
+
+    s_bounce_velocity =
+        clamp_i32(
+            s_bounce_velocity,
+            -BOUNCE_MAX_VELOCITY,
+            BOUNCE_MAX_VELOCITY);
+
+    s_bounce_offset += s_bounce_velocity;
+
+    if (s_bounce_offset > BOUNCE_MAX_OFFSET) {
+      s_bounce_offset = BOUNCE_MAX_OFFSET;
+
+      if (s_bounce_velocity > 0) {
+        s_bounce_velocity = 0;
+      }
+    } else if (
+        s_bounce_offset < -BOUNCE_MAX_OFFSET) {
+      s_bounce_offset = -BOUNCE_MAX_OFFSET;
+
+      if (s_bounce_velocity < 0) {
+        s_bounce_velocity = 0;
+      }
+    }
+
+    if (absolute_i32(s_bounce_offset)
+            <= BOUNCE_STOP_OFFSET
+        && absolute_i32(s_bounce_velocity)
+            <= BOUNCE_STOP_VELOCITY) {
+      s_bounce_offset = 0;
+      s_bounce_velocity = 0;
+    }
+
+    needs_redraw = true;
+  }
+
+  if (needs_redraw && s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
   }
 
@@ -482,10 +532,15 @@ static void canvas_update_proc(
       0,
       GCornerNone);
 
+  const int32_t visual_angle =
+      normalize_angle(
+          s_display_angle
+          + s_bounce_offset);
+
   const int32_t rotation =
       normalize_angle(
           DEG_TO_TRIGANGLE(270)
-          - s_display_angle);
+          - visual_angle);
 
   for (int slot = 0;
        slot < SLOT_COUNT;

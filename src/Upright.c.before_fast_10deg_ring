@@ -2,69 +2,46 @@
 #include "vector_digits.h"
 
 #define SENSOR_RATE ACCEL_SAMPLING_10HZ
-#define SENSOR_BATCH_SIZE 1
+#define SENSOR_BATCH_SIZE 2
 #define FRAME_INTERVAL_MS 56
 
-/*
- * Eine einzige gedämpfte Feder steuert die sichtbare Bewegung.
- * Dadurch entstehen Nachlauf und Übersteuern fließend aus
- * derselben Bewegung, ohne nachträglich gestarteten Bounce.
- */
-#define DISPLAY_SPRING_NUMERATOR 24
-#define DISPLAY_SPRING_DENOMINATOR 32
+#define REST_DEADZONE (TRIG_MAX_ANGLE / 90)
+#define MOVING_DEADZONE (TRIG_MAX_ANGLE / 240)
+#define DISPLAY_DEADZONE (TRIG_MAX_ANGLE / 720)
 
-#define DISPLAY_DAMPING_NUMERATOR 15
-#define DISPLAY_DAMPING_DENOMINATOR 32
-
-#define DISPLAY_MAX_VELOCITY DEG_TO_TRIGANGLE(32)
-
-#define DISPLAY_STOP_ERROR (TRIG_MAX_ANGLE / 1800)
-#define DISPLAY_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
+#define MOTION_HOLD_SAMPLES 2
+#define START_MOTION_SAMPLES 1
 
 #define SLOT_COUNT 4
 
 /*
- * Festes Kegelmodell:
+ * Der virtuelle Neigungsvektor darf diesen Kreis um den
+ * waagerechten Ursprung niemals betreten.
  *
- * Der virtuelle Neigungsvektor liegt IMMER auf einem Kreis
- * mit ungefähr 10 Grad Neigung. Es gibt keinen Zustand im
- * Inneren dieses Kreises und damit auch keinen Mittelpunkt,
- * den das Ziffernblatt überqueren könnte.
+ * 90 mg entsprechen ungefähr 5 Grad Neigung.
+ * Ab 125 mg (ungefähr 7 Grad) übernimmt wieder der
+ * normale direkte Sensorwinkel.
+ */
+#define MIN_TILT_ENTER_MG 260
+#define MIN_TILT_EXIT_MG 300
+
+#define MIN_TILT_ENTER_SQUARED \
+  ((int64_t)MIN_TILT_ENTER_MG * MIN_TILT_ENTER_MG)
+
+#define MIN_TILT_EXIT_SQUARED \
+  ((int64_t)MIN_TILT_EXIT_MG * MIN_TILT_EXIT_MG)
+
+/*
+ * Umfang des nochmals vergroesserten virtuellen Sperrkreises:
+ * 2 * pi * 260 mg ~= 1634 mg.
  *
- * sin(10 Grad) * 1000 mg ~= 174 mg
+ * Das entspricht ungefaehr 15 Grad Mindestschiefstellung.
+ * Die normale direkte Steuerung greift wieder ab rund 17 Grad.
  */
-#define CONE_RADIUS_MG 175
+#define MIN_TILT_CIRCUMFERENCE_MG 1634
 
-/*
- * Umfang der festen Kreisbahn:
- * 2 * pi * 175 mg ~= 1100 mg
- */
-#define CONE_CIRCUMFERENCE_MG 1100
-
-/*
- * Kleine reale Neigungen unter ungefähr 2 Grad erzeugen
- * überhaupt keine Bewegung. Dadurch bleibt das Ziffernblatt
- * bei waagerechter Uhr vollkommen ruhig.
- */
-#define MIN_INPUT_RADIUS_MG 35
-#define MIN_INPUT_RADIUS_SQUARED \
-  ((int64_t)MIN_INPUT_RADIUS_MG * MIN_INPUT_RADIUS_MG)
-
-/*
- * Echte Winkeldeadzone:
- * Sie bleibt unabhängig von der Stärke der Neigung immer gleich.
- */
-#define ORBIT_ANGLE_DEADZONE DEG_TO_TRIGANGLE(4)
-#define TANGENTIAL_FORCE_NOISE_FLOOR_MG 1
-
-/*
- * Pro Sensormessung wird ungefähr ein Drittel der
- * geometrisch notwendigen Winkelkorrektur ausgeführt.
- */
-#define CONE_RESPONSE_NUMERATOR 1
-#define CONE_RESPONSE_DENOMINATOR 3
-
-#define MAX_CONE_STEP (TRIG_MAX_ANGLE / 18)
+#define TANGENTIAL_DEADZONE_MG 3
+#define MAX_RING_ANGLE_STEP (TRIG_MAX_ANGLE / 12)
 
 static Window *s_window;
 static Layer *s_canvas_layer;
@@ -76,20 +53,18 @@ static uint8_t s_digit_path_count[SLOT_COUNT];
 
 static int s_numbers[SLOT_COUNT] = {-1, -1, -1, -1};
 
-/*
- * Dieser Winkel ist der einzige Bewegungszustand des Kegels.
- * Er kann sich ausschließlich auf der festen Kreisbahn ändern.
- */
-static int32_t s_cone_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_target_angle = TRIG_MAX_ANGLE / 4;
 static int32_t s_display_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_virtual_ring_angle = TRIG_MAX_ANGLE / 4;
 
-/*
- * Geschwindigkeit der sichtbaren Federbewegung.
- * Nachlauf und Übersteuern entstehen direkt daraus.
- */
-static int32_t s_display_velocity = 0;
+static uint8_t s_motion_hold = 0;
+static uint8_t s_motion_start_samples = 0;
 
-static bool s_cone_initialized = false;
+static bool s_ring_active = false;
+static bool s_have_previous_sample = false;
+
+static int32_t s_previous_x = 0;
+static int32_t s_previous_y = 0;
 
 static const GPoint SLOT_CENTERS[SLOT_COUNT] = {
   {50, 50},
@@ -277,31 +252,128 @@ static void tick_handler(
   update_time_digits(time_now);
 }
 
-/*
- * Tangentiale Kraft auf der festen Kegelbahn.
- *
- * Der reale Sensorvektor wird NICHT als neuer Winkel
- * übernommen. Stattdessen wird nur sein Anteil entlang
- * der Tangente an der aktuellen Kreisposition verwendet.
- *
- * Genau dadurch kann der virtuelle Kegel niemals durch
- * den Mittelpunkt springen.
- */
-static int32_t calculate_tangential_force_mg(
-    int32_t sensor_x,
-    int32_t sensor_y) {
+static void apply_normal_sensor_angle(
+    int32_t measured_angle) {
+  const int32_t difference =
+      shortest_angle_difference(
+          s_target_angle,
+          measured_angle);
+
+  const int32_t distance =
+      absolute_i32(difference);
+
+  if (s_motion_hold > 0) {
+    if (distance > MOVING_DEADZONE) {
+      s_target_angle =
+          normalize_angle(
+              s_target_angle
+              + (difference * 2) / 3);
+    }
+
+    if (distance > REST_DEADZONE) {
+      s_motion_hold = MOTION_HOLD_SAMPLES;
+    } else {
+      --s_motion_hold;
+    }
+
+    s_motion_start_samples = 0;
+    return;
+  }
+
+  if (distance > REST_DEADZONE) {
+    ++s_motion_start_samples;
+
+    if (s_motion_start_samples
+        >= START_MOTION_SAMPLES) {
+      s_target_angle =
+          normalize_angle(
+              s_target_angle
+              + (difference * 3) / 4);
+
+      s_motion_hold = MOTION_HOLD_SAMPLES;
+      s_motion_start_samples = 0;
+    }
+  } else {
+    s_motion_start_samples = 0;
+  }
+}
+
+static bool average_accel_batch(
+    AccelData *data,
+    uint32_t num_samples,
+    int32_t *average_x,
+    int32_t *average_y) {
+  int32_t sum_x = 0;
+  int32_t sum_y = 0;
+  uint32_t usable_samples = 0;
+
+  for (uint32_t i = 0; i < num_samples; ++i) {
+    if (data[i].did_vibrate) {
+      continue;
+    }
+
+    sum_x += data[i].x;
+    sum_y += data[i].y;
+    ++usable_samples;
+  }
+
+  if (usable_samples == 0) {
+    return false;
+  }
+
+  *average_x = sum_x / (int32_t)usable_samples;
+  *average_y = sum_y / (int32_t)usable_samples;
+
+  return true;
+}
+
+static int32_t tangent_displacement_mg(
+    int32_t delta_x,
+    int32_t delta_y) {
   const int32_t sine =
-      sin_lookup(s_cone_angle);
+      sin_lookup(s_virtual_ring_angle);
 
   const int32_t cosine =
-      cos_lookup(s_cone_angle);
+      cos_lookup(s_virtual_ring_angle);
 
-  const int64_t tangential_force =
-      -(int64_t)sine * sensor_x
-      + (int64_t)cosine * sensor_y;
+  const int64_t projection =
+      -(int64_t)sine * delta_x
+      + (int64_t)cosine * delta_y;
 
   return (int32_t)(
-      tangential_force / TRIG_MAX_RATIO);
+      projection / TRIG_MAX_RATIO);
+}
+
+static void move_along_minimum_tilt_ring(
+    int32_t delta_x,
+    int32_t delta_y) {
+  const int32_t tangent_mg =
+      tangent_displacement_mg(
+          delta_x,
+          delta_y);
+
+  if (absolute_i32(tangent_mg)
+      <= TANGENTIAL_DEADZONE_MG) {
+    return;
+  }
+
+  int32_t angle_step =
+      (int32_t)(
+          (int64_t)tangent_mg
+          * TRIG_MAX_ANGLE
+          / MIN_TILT_CIRCUMFERENCE_MG);
+
+  angle_step =
+      clamp_i32(
+          angle_step,
+          -MAX_RING_ANGLE_STEP,
+          MAX_RING_ANGLE_STEP);
+
+  s_virtual_ring_angle =
+      normalize_angle(
+          s_virtual_ring_angle + angle_step);
+
+  s_target_angle = s_virtual_ring_angle;
 }
 
 static void accel_data_handler(
@@ -311,153 +383,127 @@ static void accel_data_handler(
     return;
   }
 
-  const AccelData sample = data[num_samples - 1];
+  int32_t average_x = 0;
+  int32_t average_y = 0;
 
-  if (sample.did_vibrate) {
+  if (!average_accel_batch(
+          data,
+          num_samples,
+          &average_x,
+          &average_y)) {
     return;
   }
 
-  const int32_t sensor_x = sample.x;
-  const int32_t sensor_y = sample.y;
+  if (!s_have_previous_sample) {
+    s_previous_x = average_x;
+    s_previous_y = average_y;
+    s_have_previous_sample = true;
 
-  const int64_t input_radius_squared =
-      (int64_t)sensor_x * sensor_x
-      + (int64_t)sensor_y * sensor_y;
+    const int64_t initial_radius_squared =
+        (int64_t)average_x * average_x
+        + (int64_t)average_y * average_y;
 
-  /*
-   * Nur beim ersten Start darf eine eindeutige reale
-   * Neigung die Anfangsposition des Kegels festlegen.
-   * Danach wird atan2 nie wieder für die Bewegung benutzt.
-   */
-  if (!s_cone_initialized) {
-    s_cone_initialized = true;
-
-    if (input_radius_squared
-        >= MIN_INPUT_RADIUS_SQUARED) {
-      s_cone_angle =
+    if (initial_radius_squared
+        >= MIN_TILT_EXIT_SQUARED) {
+      const int32_t measured_angle =
           atan2_lookup(
-              sensor_y,
-              sensor_x);
+              average_y,
+              average_x);
 
-      s_display_angle = s_cone_angle;
+      s_target_angle = measured_angle;
+      s_display_angle = measured_angle;
+      s_virtual_ring_angle = measured_angle;
     }
 
     return;
   }
 
-  /*
-   * Waagerecht bedeutet: keine tangentiale Kraft.
-   * Der Kegel bleibt an seiner festen Kreisposition stehen.
-   */
-  if (input_radius_squared
-      < MIN_INPUT_RADIUS_SQUARED) {
-    return;
+  const int32_t delta_x =
+      average_x - s_previous_x;
+
+  const int32_t delta_y =
+      average_y - s_previous_y;
+
+  const int64_t radius_squared =
+      (int64_t)average_x * average_x
+      + (int64_t)average_y * average_y;
+
+  if (!s_ring_active
+      && radius_squared
+          <= MIN_TILT_ENTER_SQUARED) {
+    /*
+     * Beim Eintritt bleibt die zuletzt stabile Richtung
+     * erhalten. Ab hier kann sich der virtuelle Punkt nur
+     * noch entlang des Kreisrandes bewegen.
+     */
+    s_ring_active = true;
+    s_virtual_ring_angle = s_target_angle;
+
+    s_motion_hold = 0;
+    s_motion_start_samples = 0;
   }
 
-  /*
-   * Die Deadzone wird als Winkel gemessen und nicht mehr
-   * als feste Sensorstärke. Dadurch bleibt sie bei jeder
-   * Neigung gleich groß.
-   */
-  const int32_t measured_angle =
-      atan2_lookup(
-          sensor_y,
-          sensor_x);
+  if (s_ring_active) {
+    if (radius_squared
+        >= MIN_TILT_EXIT_SQUARED) {
+      /*
+       * Der reale Sensorvektor ist wieder eindeutig gross
+       * genug. Die normale Steuerung übernimmt weich.
+       */
+      s_ring_active = false;
 
-  const int32_t angle_error =
-      shortest_angle_difference(
-          s_cone_angle,
-          measured_angle);
+      apply_normal_sensor_angle(
+          atan2_lookup(
+              average_y,
+              average_x));
 
-  if (absolute_i32(angle_error)
-      <= ORBIT_ANGLE_DEADZONE) {
-    return;
+      s_virtual_ring_angle = s_target_angle;
+    } else {
+      /*
+       * Innerhalb des verbotenen Kreises wird nur die
+       * tangentiale Bewegung verwendet. Radiale Bewegung
+       * in Richtung waagerechte Mitte hat keinen Effekt.
+       */
+      move_along_minimum_tilt_ring(
+          delta_x,
+          delta_y);
+    }
+  } else {
+    apply_normal_sensor_angle(
+        atan2_lookup(
+            average_y,
+            average_x));
+
+    s_virtual_ring_angle = s_target_angle;
   }
 
-  const int32_t tangential_force_mg =
-      calculate_tangential_force_mg(
-          sensor_x,
-          sensor_y);
-
-  if (absolute_i32(tangential_force_mg)
-      <= TANGENTIAL_FORCE_NOISE_FLOOR_MG) {
-    return;
-  }
-
-  /*
-   * Kraft entlang des Kreisumfangs in eine Winkelbewegung
-   * auf genau derselben Kreisbahn umrechnen.
-   */
-  int32_t angle_step =
-      (int32_t)(
-          (int64_t)tangential_force_mg
-          * TRIG_MAX_ANGLE
-          * CONE_RESPONSE_NUMERATOR
-          / CONE_CIRCUMFERENCE_MG
-          / CONE_RESPONSE_DENOMINATOR);
-
-  angle_step =
-      clamp_i32(
-          angle_step,
-          -MAX_CONE_STEP,
-          MAX_CONE_STEP);
-
-  s_cone_angle =
-      normalize_angle(
-          s_cone_angle + angle_step);
+  s_previous_x = average_x;
+  s_previous_y = average_y;
 }
 
 static void frame_timer_handler(void *context) {
   (void)context;
 
-  const int32_t error =
+  const int32_t difference =
       shortest_angle_difference(
           s_display_angle,
-          s_cone_angle);
+          s_target_angle);
 
-  /*
-   * Eine einzige Federbewegung:
-   *
-   * - der Fehler zum Ziel erzeugt Beschleunigung
-   * - die aktuelle Geschwindigkeit erzeugt Nachlauf
-   * - die Dämpfung beruhigt die Bewegung wieder
-   *
-   * Dadurch beginnt das Übersteuern schon aus der laufenden
-   * Bewegung heraus und nicht erst nach einem sichtbaren Stopp.
-   */
-  const int32_t acceleration =
-      (error
-       * DISPLAY_SPRING_NUMERATOR)
-      / DISPLAY_SPRING_DENOMINATOR;
+  if (absolute_i32(difference)
+      > DISPLAY_DEADZONE) {
+    int32_t step = (difference * 9) / 20;
 
-  s_display_velocity += acceleration;
+    if (step == 0) {
+      step = difference > 0 ? 1 : -1;
+    }
 
-  s_display_velocity =
-      (s_display_velocity
-       * DISPLAY_DAMPING_NUMERATOR)
-      / DISPLAY_DAMPING_DENOMINATOR;
-
-  s_display_velocity =
-      clamp_i32(
-          s_display_velocity,
-          -DISPLAY_MAX_VELOCITY,
-          DISPLAY_MAX_VELOCITY);
-
-  if (absolute_i32(error)
-          <= DISPLAY_STOP_ERROR
-      && absolute_i32(s_display_velocity)
-          <= DISPLAY_STOP_VELOCITY) {
-    s_display_angle = s_cone_angle;
-    s_display_velocity = 0;
-  } else {
     s_display_angle =
         normalize_angle(
-            s_display_angle
-            + s_display_velocity);
-  }
+            s_display_angle + step);
 
-  if (s_canvas_layer) {
-    layer_mark_dirty(s_canvas_layer);
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
+    }
   }
 
   s_frame_timer =

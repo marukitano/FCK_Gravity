@@ -1,0 +1,732 @@
+#include <pebble.h>
+#include "vector_digits.h"
+
+#define SENSOR_RATE ACCEL_SAMPLING_10HZ
+#define SENSOR_BATCH_SIZE 1
+#define FRAME_INTERVAL_MS 56
+
+#define REST_DEADZONE (TRIG_MAX_ANGLE / 90)
+#define MOVING_DEADZONE (TRIG_MAX_ANGLE / 240)
+#define DISPLAY_DEADZONE (TRIG_MAX_ANGLE / 720)
+
+#define MOTION_HOLD_SAMPLES 2
+#define START_MOTION_SAMPLES 1
+
+#define SLOT_COUNT 4
+
+/*
+ * Der virtuelle Neigungsvektor darf diesen Kreis um den
+ * waagerechten Ursprung niemals betreten.
+ *
+ * 90 mg entsprechen ungefähr 5 Grad Neigung.
+ * Ab 125 mg (ungefähr 7 Grad) übernimmt wieder der
+ * normale direkte Sensorwinkel.
+ */
+#define MIN_TILT_ENTER_MG 175
+#define MIN_TILT_EXIT_MG 210
+
+#define MIN_TILT_ENTER_SQUARED \
+  ((int64_t)MIN_TILT_ENTER_MG * MIN_TILT_ENTER_MG)
+
+#define MIN_TILT_EXIT_SQUARED \
+  ((int64_t)MIN_TILT_EXIT_MG * MIN_TILT_EXIT_MG)
+
+/*
+ * Umfang des nochmals vergroesserten virtuellen Sperrkreises:
+ * 2 * pi * 260 mg ~= 1634 mg.
+ *
+ * Das entspricht ungefaehr 15 Grad Mindestschiefstellung.
+ * Die normale direkte Steuerung greift wieder ab rund 17 Grad.
+ */
+#define MIN_TILT_CIRCUMFERENCE_MG 1100
+
+#define TANGENTIAL_DEADZONE_MG 1
+#define SIDE_SELECTION_MG 1
+#define INWARD_SLIP_NUMERATOR 2
+#define INWARD_SLIP_DENOMINATOR 1
+#define RING_RESPONSE_NUMERATOR 3
+#define RING_RESPONSE_DENOMINATOR 2
+#define MAX_RING_ANGLE_STEP (TRIG_MAX_ANGLE / 8)
+
+static Window *s_window;
+static Layer *s_canvas_layer;
+static AppTimer *s_frame_timer;
+
+static GPath *s_digit_paths[SLOT_COUNT][VECTOR_MAX_CONTOURS];
+static bool s_digit_path_is_hole[SLOT_COUNT][VECTOR_MAX_CONTOURS];
+static uint8_t s_digit_path_count[SLOT_COUNT];
+
+static int s_numbers[SLOT_COUNT] = {-1, -1, -1, -1};
+
+static int32_t s_target_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_display_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_virtual_ring_angle = TRIG_MAX_ANGLE / 4;
+
+static uint8_t s_motion_hold = 0;
+static uint8_t s_motion_start_samples = 0;
+
+static bool s_ring_active = false;
+static bool s_have_previous_sample = false;
+
+static int8_t s_ring_side = 1;
+static int32_t s_last_normal_step = 0;
+
+static int32_t s_previous_x = 0;
+static int32_t s_previous_y = 0;
+
+static const GPoint SLOT_CENTERS[SLOT_COUNT] = {
+  {50, 50},
+  {150, 50},
+  {50, 150},
+  {150, 150}
+};
+
+static const GPoint BOARD_CENTER = {100, 100};
+
+static int32_t normalize_angle(int32_t angle) {
+  while (angle < 0) {
+    angle += TRIG_MAX_ANGLE;
+  }
+
+  while (angle >= TRIG_MAX_ANGLE) {
+    angle -= TRIG_MAX_ANGLE;
+  }
+
+  return angle;
+}
+
+static int32_t shortest_angle_difference(
+    int32_t from,
+    int32_t to) {
+  int32_t difference = to - from;
+  const int32_t half_turn = TRIG_MAX_ANGLE / 2;
+
+  if (difference > half_turn) {
+    difference -= TRIG_MAX_ANGLE;
+  } else if (difference < -half_turn) {
+    difference += TRIG_MAX_ANGLE;
+  }
+
+  return difference;
+}
+
+static int32_t absolute_i32(int32_t value) {
+  return value < 0 ? -value : value;
+}
+
+static int32_t clamp_i32(
+    int32_t value,
+    int32_t minimum,
+    int32_t maximum) {
+  if (value < minimum) {
+    return minimum;
+  }
+
+  if (value > maximum) {
+    return maximum;
+  }
+
+  return value;
+}
+
+static GPoint rotate_point(
+    GPoint point,
+    GPoint center,
+    int32_t angle) {
+  const int32_t sine = sin_lookup(angle);
+  const int32_t cosine = cos_lookup(angle);
+
+  const int32_t dx = point.x - center.x;
+  const int32_t dy = point.y - center.y;
+
+  return GPoint(
+      center.x
+          + (int16_t)(
+              (cosine * dx - sine * dy)
+              / TRIG_MAX_RATIO),
+      center.y
+          + (int16_t)(
+              (sine * dx + cosine * dy)
+              / TRIG_MAX_RATIO));
+}
+
+static void destroy_digit_paths_for_slot(int slot) {
+  for (int i = 0; i < s_digit_path_count[slot]; ++i) {
+    if (s_digit_paths[slot][i]) {
+      gpath_destroy(s_digit_paths[slot][i]);
+      s_digit_paths[slot][i] = NULL;
+    }
+  }
+
+  s_digit_path_count[slot] = 0;
+}
+
+static bool rebuild_digit_paths_for_slot(
+    int slot,
+    int digit) {
+  destroy_digit_paths_for_slot(slot);
+
+  if (digit < 0 || digit >= VECTOR_GLYPH_COUNT) {
+    APP_LOG(
+        APP_LOG_LEVEL_ERROR,
+        "Invalid vector digit %d",
+        digit);
+    return false;
+  }
+
+  const VectorGlyph *glyph = &VECTOR_GLYPHS[digit];
+
+  if (glyph->contour_count > VECTOR_MAX_CONTOURS) {
+    APP_LOG(
+        APP_LOG_LEVEL_ERROR,
+        "Digit %d has too many contours",
+        digit);
+    return false;
+  }
+
+  for (uint8_t i = 0; i < glyph->contour_count; ++i) {
+    const VectorContour *contour = &glyph->contours[i];
+
+    s_digit_paths[slot][i] =
+        gpath_create(&contour->path_info);
+
+    if (!s_digit_paths[slot][i]) {
+      APP_LOG(
+          APP_LOG_LEVEL_ERROR,
+          "Could not create digit %d contour %d",
+          digit,
+          i);
+
+      destroy_digit_paths_for_slot(slot);
+      return false;
+    }
+
+    s_digit_path_is_hole[slot][i] = contour->is_hole;
+  }
+
+  s_digit_path_count[slot] = glyph->contour_count;
+  return true;
+}
+
+static void update_time_digits(const struct tm *time_now) {
+  if (!time_now) {
+    return;
+  }
+
+  int hour = time_now->tm_hour;
+
+  if (!clock_is_24h_style()) {
+    hour = hour > 12
+        ? hour - 12
+        : (hour == 0 ? 12 : hour);
+  }
+
+  int new_numbers[SLOT_COUNT] = {
+    hour / 10,
+    hour % 10,
+    time_now->tm_min / 10,
+    time_now->tm_min % 10
+  };
+
+  if (new_numbers[0] == 1) {
+    new_numbers[0] = 10;
+  }
+
+  if (new_numbers[2] == 1) {
+    new_numbers[2] = 10;
+  }
+
+  for (int slot = 0; slot < SLOT_COUNT; ++slot) {
+    if (new_numbers[slot] == s_numbers[slot]) {
+      continue;
+    }
+
+    if (rebuild_digit_paths_for_slot(
+            slot,
+            new_numbers[slot])) {
+      s_numbers[slot] = new_numbers[slot];
+    }
+  }
+
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);
+  }
+}
+
+static void tick_handler(
+    struct tm *time_now,
+    TimeUnits units_changed) {
+  (void)units_changed;
+  update_time_digits(time_now);
+}
+
+static void apply_normal_sensor_angle(
+    int32_t measured_angle) {
+  const int32_t difference =
+      shortest_angle_difference(
+          s_target_angle,
+          measured_angle);
+
+  const int32_t distance =
+      absolute_i32(difference);
+
+  if (s_motion_hold > 0) {
+    if (distance > MOVING_DEADZONE) {
+      const int32_t step =
+          (difference * 2) / 3;
+
+      s_target_angle =
+          normalize_angle(
+              s_target_angle + step);
+
+      s_last_normal_step = step;
+    }
+
+    if (distance > REST_DEADZONE) {
+      s_motion_hold = MOTION_HOLD_SAMPLES;
+    } else {
+      --s_motion_hold;
+    }
+
+    s_motion_start_samples = 0;
+    return;
+  }
+
+  if (distance > REST_DEADZONE) {
+    ++s_motion_start_samples;
+
+    if (s_motion_start_samples
+        >= START_MOTION_SAMPLES) {
+      const int32_t step =
+          (difference * 3) / 4;
+
+      s_target_angle =
+          normalize_angle(
+              s_target_angle + step);
+
+      s_last_normal_step = step;
+      s_motion_hold = MOTION_HOLD_SAMPLES;
+      s_motion_start_samples = 0;
+    }
+  } else {
+    s_motion_start_samples = 0;
+  }
+}
+
+static bool average_accel_batch(
+    AccelData *data,
+    uint32_t num_samples,
+    int32_t *average_x,
+    int32_t *average_y) {
+  int32_t sum_x = 0;
+  int32_t sum_y = 0;
+  uint32_t usable_samples = 0;
+
+  for (uint32_t i = 0; i < num_samples; ++i) {
+    if (data[i].did_vibrate) {
+      continue;
+    }
+
+    sum_x += data[i].x;
+    sum_y += data[i].y;
+    ++usable_samples;
+  }
+
+  if (usable_samples == 0) {
+    return false;
+  }
+
+  *average_x = sum_x / (int32_t)usable_samples;
+  *average_y = sum_y / (int32_t)usable_samples;
+
+  return true;
+}
+
+static int32_t tangent_displacement_mg(
+    int32_t delta_x,
+    int32_t delta_y) {
+  const int32_t sine =
+      sin_lookup(s_virtual_ring_angle);
+
+  const int32_t cosine =
+      cos_lookup(s_virtual_ring_angle);
+
+  const int64_t projection =
+      -(int64_t)sine * delta_x
+      + (int64_t)cosine * delta_y;
+
+  return (int32_t)(
+      projection / TRIG_MAX_RATIO);
+}
+
+static int32_t radial_displacement_mg(
+    int32_t delta_x,
+    int32_t delta_y) {
+  const int32_t sine =
+      sin_lookup(s_virtual_ring_angle);
+
+  const int32_t cosine =
+      cos_lookup(s_virtual_ring_angle);
+
+  const int64_t projection =
+      (int64_t)cosine * delta_x
+      + (int64_t)sine * delta_y;
+
+  return (int32_t)(
+      projection / TRIG_MAX_RATIO);
+}
+
+static void choose_ring_side(
+    int32_t delta_x,
+    int32_t delta_y) {
+  const int32_t tangent_mg =
+      tangent_displacement_mg(
+          delta_x,
+          delta_y);
+
+  if (absolute_i32(tangent_mg)
+      >= SIDE_SELECTION_MG) {
+    s_ring_side =
+        tangent_mg > 0 ? 1 : -1;
+    return;
+  }
+
+  if (s_last_normal_step != 0) {
+    s_ring_side =
+        s_last_normal_step > 0 ? 1 : -1;
+  }
+}
+
+static void move_along_minimum_tilt_ring(
+    int32_t delta_x,
+    int32_t delta_y) {
+  int32_t tangent_mg =
+      tangent_displacement_mg(
+          delta_x,
+          delta_y);
+
+  const int32_t radial_mg =
+      radial_displacement_mg(
+          delta_x,
+          delta_y);
+
+  /*
+   * Eine erkennbare seitliche Bewegung entscheidet sofort,
+   * auf welcher Seite das Ziffernblatt vorbeilaeuft.
+   */
+  if (absolute_i32(tangent_mg)
+      >= SIDE_SELECTION_MG) {
+    s_ring_side =
+        tangent_mg > 0 ? 1 : -1;
+  }
+
+  /*
+   * Bewegung direkt zur waagerechten Mitte kann den
+   * Sperrkreis nicht betreten. Sie wird sofort in eine
+   * Bewegung entlang des Kreisrandes umgewandelt.
+   */
+  if (radial_mg < -TANGENTIAL_DEADZONE_MG) {
+    const int32_t inward_mg = -radial_mg;
+
+    tangent_mg +=
+        s_ring_side
+        * inward_mg
+        * INWARD_SLIP_NUMERATOR
+        / INWARD_SLIP_DENOMINATOR;
+  }
+
+  if (absolute_i32(tangent_mg)
+      <= TANGENTIAL_DEADZONE_MG) {
+    return;
+  }
+
+  int32_t angle_step =
+      (int32_t)(
+          (int64_t)tangent_mg
+          * TRIG_MAX_ANGLE
+          * RING_RESPONSE_NUMERATOR
+          / MIN_TILT_CIRCUMFERENCE_MG
+          / RING_RESPONSE_DENOMINATOR);
+
+  angle_step =
+      clamp_i32(
+          angle_step,
+          -MAX_RING_ANGLE_STEP,
+          MAX_RING_ANGLE_STEP);
+
+  s_virtual_ring_angle =
+      normalize_angle(
+          s_virtual_ring_angle + angle_step);
+
+  s_target_angle = s_virtual_ring_angle;
+  s_last_normal_step = angle_step;
+}
+
+static void accel_data_handler(
+    AccelData *data,
+    uint32_t num_samples) {
+  if (!data || num_samples == 0) {
+    return;
+  }
+
+  int32_t average_x = 0;
+  int32_t average_y = 0;
+
+  if (!average_accel_batch(
+          data,
+          num_samples,
+          &average_x,
+          &average_y)) {
+    return;
+  }
+
+  if (!s_have_previous_sample) {
+    s_previous_x = average_x;
+    s_previous_y = average_y;
+    s_have_previous_sample = true;
+
+    const int64_t initial_radius_squared =
+        (int64_t)average_x * average_x
+        + (int64_t)average_y * average_y;
+
+    if (initial_radius_squared
+        >= MIN_TILT_EXIT_SQUARED) {
+      const int32_t measured_angle =
+          atan2_lookup(
+              average_y,
+              average_x);
+
+      s_target_angle = measured_angle;
+      s_display_angle = measured_angle;
+      s_virtual_ring_angle = measured_angle;
+    }
+
+    return;
+  }
+
+  const int32_t delta_x =
+      average_x - s_previous_x;
+
+  const int32_t delta_y =
+      average_y - s_previous_y;
+
+  const int64_t radius_squared =
+      (int64_t)average_x * average_x
+      + (int64_t)average_y * average_y;
+
+  if (!s_ring_active
+      && radius_squared
+          <= MIN_TILT_ENTER_SQUARED) {
+    /*
+     * Beim Eintritt bleibt die zuletzt stabile Richtung
+     * erhalten. Ab hier kann sich der virtuelle Punkt nur
+     * noch entlang des Kreisrandes bewegen.
+     */
+    s_ring_active = true;
+    s_virtual_ring_angle = s_target_angle;
+
+    choose_ring_side(
+        delta_x,
+        delta_y);
+
+    s_motion_hold = 0;
+    s_motion_start_samples = 0;
+  }
+
+  if (s_ring_active) {
+    if (radius_squared
+        >= MIN_TILT_EXIT_SQUARED) {
+      /*
+       * Der reale Sensorvektor ist wieder eindeutig gross
+       * genug. Die normale Steuerung übernimmt weich.
+       */
+      s_ring_active = false;
+
+      apply_normal_sensor_angle(
+          atan2_lookup(
+              average_y,
+              average_x));
+
+      s_virtual_ring_angle = s_target_angle;
+    } else {
+      /*
+       * Innerhalb des verbotenen Kreises wird nur die
+       * tangentiale Bewegung verwendet. Radiale Bewegung
+       * in Richtung waagerechte Mitte hat keinen Effekt.
+       */
+      move_along_minimum_tilt_ring(
+          delta_x,
+          delta_y);
+    }
+  } else {
+    apply_normal_sensor_angle(
+        atan2_lookup(
+            average_y,
+            average_x));
+
+    s_virtual_ring_angle = s_target_angle;
+  }
+
+  s_previous_x = average_x;
+  s_previous_y = average_y;
+}
+
+static void frame_timer_handler(void *context) {
+  (void)context;
+
+  const int32_t difference =
+      shortest_angle_difference(
+          s_display_angle,
+          s_target_angle);
+
+  if (absolute_i32(difference)
+      > DISPLAY_DEADZONE) {
+    int32_t step = (difference * 9) / 20;
+
+    if (step == 0) {
+      step = difference > 0 ? 1 : -1;
+    }
+
+    s_display_angle =
+        normalize_angle(
+            s_display_angle + step);
+
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
+    }
+  }
+
+  s_frame_timer =
+      app_timer_register(
+          FRAME_INTERVAL_MS,
+          frame_timer_handler,
+          NULL);
+}
+
+static void canvas_update_proc(
+    Layer *layer,
+    GContext *ctx) {
+  const GRect bounds = layer_get_bounds(layer);
+
+  graphics_context_set_fill_color(
+      ctx,
+      GColorBlack);
+
+  graphics_fill_rect(
+      ctx,
+      bounds,
+      0,
+      GCornerNone);
+
+  const int32_t rotation =
+      normalize_angle(
+          DEG_TO_TRIGANGLE(270)
+          - s_display_angle);
+
+  for (int slot = 0;
+       slot < SLOT_COUNT;
+       ++slot) {
+    const GPoint rotated_center =
+        rotate_point(
+            SLOT_CENTERS[slot],
+            BOARD_CENTER,
+            rotation);
+
+    for (int i = 0;
+         i < s_digit_path_count[slot];
+         ++i) {
+      GPath *path = s_digit_paths[slot][i];
+
+      if (!path) {
+        continue;
+      }
+
+      graphics_context_set_fill_color(
+          ctx,
+          s_digit_path_is_hole[slot][i]
+              ? GColorBlack
+              : GColorWhite);
+
+      gpath_move_to(path, rotated_center);
+      gpath_rotate_to(path, rotation);
+      gpath_draw_filled(ctx, path);
+    }
+  }
+}
+
+static void init(void) {
+  s_window = window_create();
+
+  window_set_background_color(
+      s_window,
+      GColorBlack);
+
+  Layer *root_layer =
+      window_get_root_layer(s_window);
+
+  s_canvas_layer =
+      layer_create(
+          layer_get_bounds(root_layer));
+
+  layer_set_update_proc(
+      s_canvas_layer,
+      canvas_update_proc);
+
+  layer_add_child(
+      root_layer,
+      s_canvas_layer);
+
+  const time_t now = time(NULL);
+  update_time_digits(localtime(&now));
+
+  accel_service_set_sampling_rate(
+      SENSOR_RATE);
+
+  accel_data_service_subscribe(
+      SENSOR_BATCH_SIZE,
+      accel_data_handler);
+
+  tick_timer_service_subscribe(
+      MINUTE_UNIT,
+      tick_handler);
+
+  s_frame_timer =
+      app_timer_register(
+          FRAME_INTERVAL_MS,
+          frame_timer_handler,
+          NULL);
+
+  window_stack_push(s_window, true);
+}
+
+static void deinit(void) {
+  if (s_frame_timer) {
+    app_timer_cancel(s_frame_timer);
+    s_frame_timer = NULL;
+  }
+
+  accel_data_service_unsubscribe();
+  tick_timer_service_unsubscribe();
+
+  for (int slot = 0;
+       slot < SLOT_COUNT;
+       ++slot) {
+    destroy_digit_paths_for_slot(slot);
+  }
+
+  if (s_canvas_layer) {
+    layer_destroy(s_canvas_layer);
+    s_canvas_layer = NULL;
+  }
+
+  if (s_window) {
+    window_destroy(s_window);
+    s_window = NULL;
+  }
+}
+
+int main(void) {
+  init();
+  app_event_loop();
+  deinit();
+}

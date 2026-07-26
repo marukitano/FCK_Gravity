@@ -2,6 +2,12 @@ Archive member included to satisfy reference by file (symbol)
 
 /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
                               src/Upright.c.9.o (accel_data_service_unsubscribe)
+/home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o)
+                              src/Upright.c.9.o (__aeabi_ldivmod)
+/home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+                              /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o) (__udivmoddi4)
+/home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_dvmd_tls.o)
+                              /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o) (__aeabi_ldiv0)
 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
                               /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/crt0.o (atexit)
 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
@@ -215,10 +221,6 @@ Discarded input sections
  .text.click_recognizer_get_button_id
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.clock_copy_time_string
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.clock_is_24h_style
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.cos_lookup
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.data_logging_create
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
@@ -522,8 +524,6 @@ Discarded input sections
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.simple_menu_layer_set_selected_index
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.sin_lookup
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.snprintf
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.srand    0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
@@ -559,10 +559,6 @@ Discarded input sections
  .text.text_layer_legacy2_set_text_alignment
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.text_layer_legacy2_set_text_color_2bit
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.tick_timer_service_subscribe
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.tick_timer_service_unsubscribe
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.time__deprecated
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
@@ -768,8 +764,6 @@ Discarded input sections
  .text.rot_bitmap_layer_set_corner_clip_color
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.clock_get_timezone
-                0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.localtime
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.animation_create
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
@@ -1047,7 +1041,6 @@ Discarded input sections
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.gpath_draw_outline_open
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .text.time     0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.menu_layer_set_highlight_colors
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.menu_layer_set_normal_colors
@@ -1321,6 +1314,12 @@ Discarded input sections
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .text.launch_get_quick_launch_action
                 0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+ .bss           0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o)
+ .text          0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+ .bss           0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+ .ARM.extab.text.__udivmoddi4
+                0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+ .bss           0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_dvmd_tls.o)
  .text          0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
  .bss           0x00000000        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
  .text.atexit   0x00000000        0xc /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
@@ -1552,193 +1551,293 @@ LOAD /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/..
  .note.gnu.build-id
                 0x00000084       0x24 linker stubs
 
-.text           0x000000a8      0x4cb
+.text           0x000000a8      0xbb2
  *(.text)
  .text          0x000000a8       0x14 /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+ .text          0x000000bc       0xa0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o)
+                0x000000bc                __aeabi_ldivmod
+ .text          0x0000015c        0x4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_dvmd_tls.o)
+                0x0000015c                __aeabi_ldiv0
+                0x0000015c                __aeabi_idiv0
  *(.text.*)
- .text.normalize_angle
-                0x000000bc        0xe src/Upright.c.9.o
- *fill*         0x000000ca        0x2 
- .text.accel_data_handler
-                0x000000cc       0xec src/Upright.c.9.o
- .text.canvas_update_proc
-                0x000001b8       0x7c src/Upright.c.9.o
+ .text.destroy_digit_paths_for_slot
+                0x00000160       0x40 src/Upright.c.9.o
+ .text.update_time_digits.part.0
+                0x000001a0      0x168 src/Upright.c.9.o
+ .text.tick_handler
+                0x00000308        0x8 src/Upright.c.9.o
  .text.frame_timer_handler
-                0x00000234       0x80 src/Upright.c.9.o
+                0x00000310       0xe0 src/Upright.c.9.o
+ .text.canvas_update_proc
+                0x000003f0      0x12c src/Upright.c.9.o
+ .text.accel_data_handler
+                0x0000051c      0x138 src/Upright.c.9.o
  .text.startup.main
-                0x000002b4      0x138 src/Upright.c.9.o
-                0x000002b4                main
+                0x00000654      0x110 src/Upright.c.9.o
+                0x00000654                main
  .text.accel_data_service_unsubscribe
-                0x000003ec        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000003ec                accel_data_service_unsubscribe
+                0x00000764        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000764                accel_data_service_unsubscribe
  .text.accel_service_set_sampling_rate
-                0x000003f8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000003f8                accel_service_set_sampling_rate
+                0x00000770        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000770                accel_service_set_sampling_rate
  .text.app_event_loop
-                0x00000404        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000404                app_event_loop
- .text.app_log  0x00000410        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000410                app_log
+                0x0000077c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x0000077c                app_event_loop
+ .text.app_log  0x00000788        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000788                app_log
  .text.app_timer_cancel
-                0x0000041c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x0000041c                app_timer_cancel
+                0x00000794        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000794                app_timer_cancel
  .text.app_timer_register
-                0x00000428        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000428                app_timer_register
+                0x000007a0        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007a0                app_timer_register
  .text.atan2_lookup
-                0x00000434        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000434                atan2_lookup
+                0x000007ac        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007ac                atan2_lookup
+ .text.clock_is_24h_style
+                0x000007b8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007b8                clock_is_24h_style
+ .text.cos_lookup
+                0x000007c4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007c4                cos_lookup
  .text.gpath_create
-                0x00000440        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000440                gpath_create
+                0x000007d0        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007d0                gpath_create
  .text.gpath_destroy
-                0x0000044c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x0000044c                gpath_destroy
+                0x000007dc        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007dc                gpath_destroy
  .text.gpath_move_to
-                0x00000458        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000458                gpath_move_to
+                0x000007e8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007e8                gpath_move_to
  .text.gpath_rotate_to
-                0x00000464        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000464                gpath_rotate_to
+                0x000007f4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000007f4                gpath_rotate_to
  .text.graphics_fill_rect
-                0x00000470        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000470                graphics_fill_rect
+                0x00000800        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000800                graphics_fill_rect
  .text.layer_add_child
-                0x0000047c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x0000047c                layer_add_child
+                0x0000080c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x0000080c                layer_add_child
  .text.layer_create
-                0x00000488        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000488                layer_create
+                0x00000818        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000818                layer_create
  .text.layer_destroy
-                0x00000494        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000494                layer_destroy
+                0x00000824        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000824                layer_destroy
  .text.layer_get_bounds
-                0x000004a0        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004a0                layer_get_bounds
+                0x00000830        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000830                layer_get_bounds
  .text.layer_mark_dirty
-                0x000004ac        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004ac                layer_mark_dirty
+                0x0000083c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x0000083c                layer_mark_dirty
  .text.layer_set_update_proc
-                0x000004b8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004b8                layer_set_update_proc
+                0x00000848        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000848                layer_set_update_proc
+ .text.sin_lookup
+                0x00000854        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000854                sin_lookup
+ .text.tick_timer_service_subscribe
+                0x00000860        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000860                tick_timer_service_subscribe
+ .text.tick_timer_service_unsubscribe
+                0x0000086c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x0000086c                tick_timer_service_unsubscribe
  .text.window_create
-                0x000004c4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004c4                window_create
+                0x00000878        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000878                window_create
  .text.window_destroy
-                0x000004d0        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004d0                window_destroy
+                0x00000884        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000884                window_destroy
  .text.window_get_root_layer
-                0x000004dc        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004dc                window_get_root_layer
+                0x00000890        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x00000890                window_get_root_layer
  .text.window_stack_push
-                0x000004e8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004e8                window_stack_push
+                0x0000089c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x0000089c                window_stack_push
  .text.accel_data_service_subscribe
-                0x000004f4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x000004f4                accel_data_service_subscribe
+                0x000008a8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008a8                accel_data_service_subscribe
  .text.gpath_draw_filled
-                0x00000500        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000500                gpath_draw_filled
+                0x000008b4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008b4                gpath_draw_filled
  .text.graphics_context_set_fill_color
-                0x0000050c        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x0000050c                graphics_context_set_fill_color
+                0x000008c0        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008c0                graphics_context_set_fill_color
  .text.window_set_background_color
-                0x00000518        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
-                0x00000518                window_set_background_color
+                0x000008cc        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008cc                window_set_background_color
+ .text.localtime
+                0x000008d8        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008d8                localtime
+ .text.time     0x000008e4        0xc /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+                0x000008e4                time
+ .text.__udivmoddi4
+                0x000008f0      0x2f4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+                0x000008f0                __udivmoddi4
  *(.rodata)
  *(.rodata*)
- .rodata.main.str1.1
-                0x00000524       0x4f src/Upright.c.9.o
+ .rodata.update_time_digits.part.0.str1.1
+                0x00000be4       0x66 src/Upright.c.9.o
+ .rodata.SLOT_CENTERS
+                0x00000c4a       0x10 src/Upright.c.9.o
 
-.glue_7         0x00000574        0x0
- .glue_7        0x00000574        0x0 linker stubs
+.glue_7         0x00000c5c        0x0
+ .glue_7        0x00000c5c        0x0 linker stubs
 
-.glue_7t        0x00000574        0x0
- .glue_7t       0x00000574        0x0 linker stubs
+.glue_7t        0x00000c5c        0x0
+ .glue_7t       0x00000c5c        0x0 linker stubs
 
-.vfp11_veneer   0x00000574        0x0
- .vfp11_veneer  0x00000574        0x0 linker stubs
+.vfp11_veneer   0x00000c5c        0x0
+ .vfp11_veneer  0x00000c5c        0x0 linker stubs
 
-.v4_bx          0x00000574        0x0
- .v4_bx         0x00000574        0x0 linker stubs
+.v4_bx          0x00000c5c        0x0
+ .v4_bx         0x00000c5c        0x0 linker stubs
 
-.init           0x00000574        0x4
- .init          0x00000574        0x4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
-                0x00000574                _init
+.init           0x00000c5c        0x4
+ .init          0x00000c5c        0x4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
+                0x00000c5c                _init
 
-.fini           0x00000578        0x4
- .fini          0x00000578        0x4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
-                0x00000578                _fini
+.fini           0x00000c60        0x4
+ .fini          0x00000c60        0x4 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
+                0x00000c60                _fini
 
-.iplt           0x0000057c        0x0
- .iplt          0x0000057c        0x0 src/Upright.c.9.o
+.iplt           0x00000c64        0x0
+ .iplt          0x00000c64        0x0 src/Upright.c.9.o
 
-.rel.dyn        0x0000057c        0x0
- .rel.iplt      0x0000057c        0x0 src/Upright.c.9.o
+.rel.dyn        0x00000c64        0x0
+ .rel.iplt      0x00000c64        0x0 src/Upright.c.9.o
 
-.data           0x0000057c      0x114
+.ARM.exidx.text.__udivmoddi4
+                0x00000c64        0x8
+ .ARM.exidx.text.__udivmoddi4
+                0x00000c64        0x8 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+
+.data           0x00000c6c      0x6ec
  *(.data)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtbegin.o
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/crt0.o
- .data          0x0000057c        0x0 src/Upright.c.9.o
- .data          0x0000057c        0x0 emery/appinfo.auto.c.9.o
- .data          0x0000057c        0x0 emery/src/resource_ids.auto.c.9.o
- .data          0x0000057c        0x0 src/message_keys.auto.c.9.o
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-findfp.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fwalk.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-stdio.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-closer.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-reent.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-impure.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lseekr.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-readr.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-writer.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-init.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fini.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lock.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__atexit.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__call_atexit.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-freer.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mallocr.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mlock.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fclose.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fflush.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sbrkr.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sysconf.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-errno.o)
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtend.o
- .data          0x0000057c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtn.o
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crti.o
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtbegin.o
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/crt0.o
+ .data          0x00000c6c        0x0 src/Upright.c.9.o
+ .data          0x00000c6c        0x0 emery/appinfo.auto.c.9.o
+ .data          0x00000c6c        0x0 emery/src/resource_ids.auto.c.9.o
+ .data          0x00000c6c        0x0 src/message_keys.auto.c.9.o
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_dvmd_tls.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-findfp.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fwalk.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-stdio.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-closer.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-reent.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-impure.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lseekr.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-readr.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-writer.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-init.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fini.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lock.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__atexit.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__call_atexit.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-freer.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mallocr.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mlock.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fclose.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fflush.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sbrkr.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sysconf.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-errno.o)
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtend.o
+ .data          0x00000c6c        0x0 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtn.o
  *(.data.*)
  .data.s_display_angle
-                0x0000057c        0x4 src/Upright.c.9.o
- .data.s_target_angle
-                0x00000580        0x4 src/Upright.c.9.o
- .data.rel.local.T2_VECTOR_CONTOURS
-                0x00000584        0xc src/Upright.c.9.o
- .data.s_t2_contour_0_points
-                0x00000590      0x100 src/Upright.c.9.o
+                0x00000c6c        0x4 src/Upright.c.9.o
+ .data.s_cone_angle
+                0x00000c70        0x4 src/Upright.c.9.o
+ .data.s_numbers
+                0x00000c74       0x10 src/Upright.c.9.o
+ .data.rel.ro.local.VECTOR_GLYPHS
+                0x00000c84       0x58 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_10_contours
+                0x00000cdc        0xc src/Upright.c.9.o
+ .data.s_glyph_10_contour_0_points
+                0x00000ce8       0x40 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_9_contours
+                0x00000d28       0x18 src/Upright.c.9.o
+ .data.s_glyph_9_contour_1_points
+                0x00000d40       0x10 src/Upright.c.9.o
+ .data.s_glyph_9_contour_0_points
+                0x00000d50       0x94 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_8_contours
+                0x00000de4       0x24 src/Upright.c.9.o
+ .data.s_glyph_8_contour_2_points
+                0x00000e08       0x10 src/Upright.c.9.o
+ .data.s_glyph_8_contour_1_points
+                0x00000e18       0x10 src/Upright.c.9.o
+ .data.s_glyph_8_contour_0_points
+                0x00000e28       0x70 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_7_contours
+                0x00000e98        0xc src/Upright.c.9.o
+ .data.s_glyph_7_contour_0_points
+                0x00000ea4       0x60 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_6_contours
+                0x00000f04       0x18 src/Upright.c.9.o
+ .data.s_glyph_6_contour_1_points
+                0x00000f1c       0x10 src/Upright.c.9.o
+ .data.s_glyph_6_contour_0_points
+                0x00000f2c       0x94 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_5_contours
+                0x00000fc0        0xc src/Upright.c.9.o
+ .data.s_glyph_5_contour_0_points
+                0x00000fcc       0xb8 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_4_contours
+                0x00001084        0xc src/Upright.c.9.o
+ .data.s_glyph_4_contour_0_points
+                0x00001090       0x84 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_3_contours
+                0x00001114        0xc src/Upright.c.9.o
+ .data.s_glyph_3_contour_0_points
+                0x00001120       0x90 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_2_contours
+                0x000011b0        0xc src/Upright.c.9.o
+ .data.s_glyph_2_contour_0_points
+                0x000011bc       0xb8 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_1_contours
+                0x00001274        0xc src/Upright.c.9.o
+ .data.s_glyph_1_contour_0_points
+                0x00001280       0x40 src/Upright.c.9.o
+ .data.rel.ro.local.s_glyph_0_contours
+                0x000012c0       0x18 src/Upright.c.9.o
+ .data.s_glyph_0_contour_1_points
+                0x000012d8       0x10 src/Upright.c.9.o
+ .data.s_glyph_0_contour_0_points
+                0x000012e8       0x70 src/Upright.c.9.o
 
-.igot.plt       0x00000690        0x0
- .igot.plt      0x00000690        0x0 src/Upright.c.9.o
+.igot.plt       0x00001358        0x0
+ .igot.plt      0x00001358        0x0 src/Upright.c.9.o
 
-.bss            0x00000690       0x14
+.bss            0x00001358       0x54
  *(.bss)
  *(.bss.*)
- .bss.s_motion_start_samples
-                0x00000690        0x1 src/Upright.c.9.o
- .bss.s_motion_hold
-                0x00000691        0x1 src/Upright.c.9.o
- *fill*         0x00000692        0x2 
- .bss.s_paths   0x00000694        0x4 src/Upright.c.9.o
+ .bss.s_cone_initialized
+                0x00001358        0x1 src/Upright.c.9.o
+ *fill*         0x00001359        0x3 
+ .bss.s_display_velocity
+                0x0000135c        0x4 src/Upright.c.9.o
+ .bss.s_digit_path_count
+                0x00001360        0x4 src/Upright.c.9.o
+ .bss.s_digit_path_is_hole
+                0x00001364        0xc src/Upright.c.9.o
+ .bss.s_digit_paths
+                0x00001370       0x30 src/Upright.c.9.o
  .bss.s_frame_timer
-                0x00000698        0x4 src/Upright.c.9.o
+                0x000013a0        0x4 src/Upright.c.9.o
  .bss.s_canvas_layer
-                0x0000069c        0x4 src/Upright.c.9.o
- .bss.s_window  0x000006a0        0x4 src/Upright.c.9.o
+                0x000013a4        0x4 src/Upright.c.9.o
+ .bss.s_window  0x000013a8        0x4 src/Upright.c.9.o
 
 DISCARD
  libc.a(*)
@@ -1770,57 +1869,63 @@ LOAD /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/..
  .ARM.attributes
                 0x00000119       0x1b /home/maru/.local/share/pebble-sdk/SDKs/current/sdk-core/pebble/emery/lib/libpebble.a(tmp6fj2jormpebble.o)
  .ARM.attributes
-                0x00000134       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
+                0x00000134       0x1d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_aeabi_ldivmod.o)
  .ARM.attributes
-                0x00000161       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
+                0x00000151       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
  .ARM.attributes
-                0x0000018e       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-findfp.o)
+                0x0000017e       0x1d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_dvmd_tls.o)
  .ARM.attributes
-                0x000001bb       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fwalk.o)
+                0x0000019b       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
  .ARM.attributes
-                0x000001e8       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-stdio.o)
+                0x000001c8       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
  .ARM.attributes
-                0x00000215       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-closer.o)
+                0x000001f5       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-findfp.o)
  .ARM.attributes
-                0x00000242       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-reent.o)
+                0x00000222       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fwalk.o)
  .ARM.attributes
-                0x0000026f       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-impure.o)
+                0x0000024f       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-stdio.o)
  .ARM.attributes
-                0x0000029c       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lseekr.o)
+                0x0000027c       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-closer.o)
  .ARM.attributes
-                0x000002c9       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-readr.o)
+                0x000002a9       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-reent.o)
  .ARM.attributes
-                0x000002f6       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-writer.o)
+                0x000002d6       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-impure.o)
  .ARM.attributes
-                0x00000323       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-init.o)
+                0x00000303       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lseekr.o)
  .ARM.attributes
-                0x00000350       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fini.o)
+                0x00000330       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-readr.o)
  .ARM.attributes
-                0x0000037d       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lock.o)
+                0x0000035d       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-writer.o)
  .ARM.attributes
-                0x000003aa       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__atexit.o)
+                0x0000038a       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-init.o)
  .ARM.attributes
-                0x000003d7       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__call_atexit.o)
+                0x000003b7       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fini.o)
  .ARM.attributes
-                0x00000404       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-freer.o)
+                0x000003e4       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-lock.o)
  .ARM.attributes
-                0x00000431       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mallocr.o)
+                0x00000411       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__atexit.o)
  .ARM.attributes
-                0x0000045e       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mlock.o)
+                0x0000043e       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-__call_atexit.o)
  .ARM.attributes
-                0x0000048b       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fclose.o)
+                0x0000046b       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-freer.o)
  .ARM.attributes
-                0x000004b8       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fflush.o)
+                0x00000498       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mallocr.o)
  .ARM.attributes
-                0x000004e5       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sbrkr.o)
+                0x000004c5       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-mlock.o)
  .ARM.attributes
-                0x00000512       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sysconf.o)
+                0x000004f2       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fclose.o)
  .ARM.attributes
-                0x0000053f       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-errno.o)
+                0x0000051f       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-fflush.o)
  .ARM.attributes
-                0x0000056c       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtend.o
+                0x0000054c       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sbrkr.o)
  .ARM.attributes
-                0x00000599       0x1d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtn.o
+                0x00000579       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-sysconf.o)
+ .ARM.attributes
+                0x000005a6       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-errno.o)
+ .ARM.attributes
+                0x000005d3       0x2d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtend.o
+ .ARM.attributes
+                0x00000600       0x1d /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtn.o
 
 .comment        0x00000000       0x39
  .comment       0x00000000       0x39 /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtbegin.o
@@ -1829,6 +1934,7 @@ LOAD /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/..
  .comment       0x00000039       0x3a emery/appinfo.auto.c.9.o
  .comment       0x00000039       0x3a emery/src/resource_ids.auto.c.9.o
  .comment       0x00000039       0x3a src/message_keys.auto.c.9.o
+ .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a(_udivmoddi4.o)
  .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-atexit.o)
  .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-exit.o)
  .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-findfp.o)
@@ -1855,50 +1961,50 @@ LOAD /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/..
  .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a(libc_a-errno.o)
  .comment       0x00000039       0x3a /home/maru/.local/share/pebble-sdk/SDKs/4.17/toolchain/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/crtend.o
 
-.debug_info     0x00000000     0x12c8
- .debug_info    0x00000000      0xdbe src/Upright.c.9.o
- .debug_info    0x00000dbe      0x33e emery/appinfo.auto.c.9.o
- .debug_info    0x000010fc      0x13d emery/src/resource_ids.auto.c.9.o
- .debug_info    0x00001239       0x8f src/message_keys.auto.c.9.o
+.debug_info     0x00000000     0x1e5d
+ .debug_info    0x00000000     0x1953 src/Upright.c.9.o
+ .debug_info    0x00001953      0x33e emery/appinfo.auto.c.9.o
+ .debug_info    0x00001c91      0x13d emery/src/resource_ids.auto.c.9.o
+ .debug_info    0x00001dce       0x8f src/message_keys.auto.c.9.o
 
-.debug_abbrev   0x00000000      0x504
- .debug_abbrev  0x00000000      0x3b9 src/Upright.c.9.o
- .debug_abbrev  0x000003b9       0xb9 emery/appinfo.auto.c.9.o
- .debug_abbrev  0x00000472       0x4a emery/src/resource_ids.auto.c.9.o
- .debug_abbrev  0x000004bc       0x48 src/message_keys.auto.c.9.o
+.debug_abbrev   0x00000000      0x5e6
+ .debug_abbrev  0x00000000      0x49b src/Upright.c.9.o
+ .debug_abbrev  0x0000049b       0xb9 emery/appinfo.auto.c.9.o
+ .debug_abbrev  0x00000554       0x4a emery/src/resource_ids.auto.c.9.o
+ .debug_abbrev  0x0000059e       0x48 src/message_keys.auto.c.9.o
 
 .debug_loclists
-                0x00000000      0x2cb
+                0x00000000      0x8a8
  .debug_loclists
-                0x00000000      0x2cb src/Upright.c.9.o
+                0x00000000      0x8a8 src/Upright.c.9.o
 
-.debug_aranges  0x00000000       0x88
+.debug_aranges  0x00000000       0x98
  .debug_aranges
-                0x00000000       0x40 src/Upright.c.9.o
+                0x00000000       0x50 src/Upright.c.9.o
  .debug_aranges
-                0x00000040       0x18 emery/appinfo.auto.c.9.o
+                0x00000050       0x18 emery/appinfo.auto.c.9.o
  .debug_aranges
-                0x00000058       0x18 emery/src/resource_ids.auto.c.9.o
+                0x00000068       0x18 emery/src/resource_ids.auto.c.9.o
  .debug_aranges
-                0x00000070       0x18 src/message_keys.auto.c.9.o
+                0x00000080       0x18 src/message_keys.auto.c.9.o
 
 .debug_rnglists
-                0x00000000       0x99
+                0x00000000      0x190
  .debug_rnglists
-                0x00000000       0x99 src/Upright.c.9.o
+                0x00000000      0x190 src/Upright.c.9.o
 
-.debug_line     0x00000000      0x92f
- .debug_line    0x00000000      0x576 src/Upright.c.9.o
- .debug_line    0x00000576      0x17d emery/appinfo.auto.c.9.o
- .debug_line    0x000006f3      0x121 emery/src/resource_ids.auto.c.9.o
- .debug_line    0x00000814      0x11b src/message_keys.auto.c.9.o
+.debug_line     0x00000000      0xcb9
+ .debug_line    0x00000000      0x900 src/Upright.c.9.o
+ .debug_line    0x00000900      0x17d emery/appinfo.auto.c.9.o
+ .debug_line    0x00000a7d      0x121 emery/src/resource_ids.auto.c.9.o
+ .debug_line    0x00000b9e      0x11b src/message_keys.auto.c.9.o
 
-.debug_str      0x00000000      0xbaa
- .debug_str     0x00000000      0xbaa src/Upright.c.9.o
-                                0x7cc (size before relaxing)
- .debug_str     0x00000baa      0x4c2 emery/appinfo.auto.c.9.o
- .debug_str     0x00000baa      0x26c emery/src/resource_ids.auto.c.9.o
- .debug_str     0x00000baa      0x176 src/message_keys.auto.c.9.o
+.debug_str      0x00000000     0x10ce
+ .debug_str     0x00000000     0x10ce src/Upright.c.9.o
+                                0xd44 (size before relaxing)
+ .debug_str     0x000010ce      0x4c2 emery/appinfo.auto.c.9.o
+ .debug_str     0x000010ce      0x26c emery/src/resource_ids.auto.c.9.o
+ .debug_str     0x000010ce      0x176 src/message_keys.auto.c.9.o
 
-.debug_frame    0x00000000       0xa0
- .debug_frame   0x00000000       0xa0 src/Upright.c.9.o
+.debug_frame    0x00000000      0x108
+ .debug_frame   0x00000000      0x108 src/Upright.c.9.o
