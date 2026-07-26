@@ -1,0 +1,26 @@
+{
+  "name": "fck-gravity",
+  "author": "Marukitano",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "pebble-watchface"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "FCK_Gravity",
+    "uuid": "bcfb9058-4ff8-4c65-aca8-a48593e2038a",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "resources": {
+      "media": []
+    }
+  }
+}
