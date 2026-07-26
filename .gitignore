@@ -1,0 +1,16 @@
+# Pebble build output
+build/
+.lock-waf_linux_build
+*.pbw
+.wafpickle-*
+
+# Compiler and Python caches
+*.o
+__pycache__/
+*.py[cod]
+
+# Temporary development snapshots
+src/Upright.c.before_*
+
+# Intermediate vector-conversion files
+resources/vectors/_pbm/
