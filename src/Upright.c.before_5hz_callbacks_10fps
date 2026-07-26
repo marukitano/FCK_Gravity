@@ -2,12 +2,11 @@
 #include "t2_vector_test.h"
 
 #define SENSOR_RATE ACCEL_SAMPLING_10HZ
-#define SENSOR_BATCH_SIZE 2
-#define FRAME_INTERVAL_MS 56
+#define FRAME_INTERVAL_MS 40
 #define REST_DEADZONE (TRIG_MAX_ANGLE / 90)
 #define MOVING_DEADZONE (TRIG_MAX_ANGLE / 240)
 #define DISPLAY_DEADZONE (TRIG_MAX_ANGLE / 720)
-#define MOTION_HOLD_SAMPLES 2
+#define MOTION_HOLD_SAMPLES 4
 #define START_MOTION_SAMPLES 1
 
 static Window *s_window;
@@ -222,9 +221,7 @@ static void init(void) {
   }
 
   accel_service_set_sampling_rate(SENSOR_RATE);
-  accel_data_service_subscribe(
-      SENSOR_BATCH_SIZE,
-      accel_data_handler);
+  accel_data_service_subscribe(1, accel_data_handler);
 
   s_frame_timer =
       app_timer_register(
