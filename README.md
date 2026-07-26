@@ -1,12 +1,12 @@
-# Gravity
+# FCK_Gravity
 
-Gravity is a gravity-driven vector watchface for the Pebble Time 2.
+FCK_Gravity is a gravity-driven vector watchface for the Pebble Time 2.
 
 ---
 
 ## Deutsch
 
-**Gravity** ist eine modernisierte Version des Pebble-Ziffernblatts
+**FCK Gravity** ist eine modernisierte Version des Pebble-Ziffernblatts
 **Upright**, das ursprünglich von **Jnm** entwickelt wurde.
 
 Die Uhrzeit wird mit vier Ziffernblöcken dargestellt. Der
@@ -60,7 +60,7 @@ Weitere Informationen befinden sich in
 
 ## English
 
-**Gravity** is a modernized version of the Pebble watchface **Upright**,
+**FCK Gravity** is a modernized version of the Pebble watchface **Upright**,
 originally created by **Jnm**.
 
 The time is displayed using four separate digit blocks. The accelerometer
