@@ -10,7 +10,7 @@
   "dependencies": {},
   "pebble": {
     "displayName": "FCK_Gravity",
-    "uuid": "bcfb9058-4ff8-4c65-aca8-a48593e2038a",
+    "uuid": "3c59e687-befe-4747-a19b-750a02b0b1f9",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
