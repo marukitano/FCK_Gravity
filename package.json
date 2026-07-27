@@ -7,7 +7,9 @@
     "pebble-watchface"
   ],
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
   "pebble": {
     "displayName": "FCK_Gravity",
     "uuid": "3c59e687-befe-4747-a19b-750a02b0b1f9",
@@ -21,6 +23,14 @@
     },
     "resources": {
       "media": []
-    }
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": [
+      "BackgroundColor",
+      "ForegroundColor",
+      "ShowEmblem"
+    ]
   }
 }

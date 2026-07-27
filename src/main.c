@@ -62,8 +62,71 @@
 #define DISK_SETTLE_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
 
 
+
 static Window *s_window;
 static Layer *s_canvas_layer;
+
+#define SETTINGS_PERSIST_KEY 4242
+
+typedef struct {
+  uint32_t background_hex;
+  uint32_t foreground_hex;
+  bool show_emblem;
+} WatchfaceSettings;
+
+static WatchfaceSettings s_settings = {
+  .background_hex = 0x000000,
+  .foreground_hex = 0xFFFFFF,
+  .show_emblem = true
+};
+
+static GColor current_background_color(void) {
+  return GColorFromHEX(s_settings.background_hex);
+}
+
+static GColor current_foreground_color(void) {
+  return GColorFromHEX(s_settings.foreground_hex);
+}
+
+static void load_settings(void) {
+  if (persist_exists(SETTINGS_PERSIST_KEY)) {
+    persist_read_data(SETTINGS_PERSIST_KEY, &s_settings, sizeof(s_settings));
+  }
+}
+
+static void save_settings(void) {
+  persist_write_data(SETTINGS_PERSIST_KEY, &s_settings, sizeof(s_settings));
+}
+
+static void settings_inbox_received(DictionaryIterator *iterator, void *context) {
+  (void)context;
+
+  Tuple *background_tuple = dict_find(iterator, MESSAGE_KEY_BackgroundColor);
+  if (background_tuple) {
+    s_settings.background_hex = (uint32_t)background_tuple->value->int32;
+  }
+
+  Tuple *foreground_tuple = dict_find(iterator, MESSAGE_KEY_ForegroundColor);
+  if (foreground_tuple) {
+    s_settings.foreground_hex = (uint32_t)foreground_tuple->value->int32;
+  }
+
+  Tuple *emblem_tuple = dict_find(iterator, MESSAGE_KEY_ShowEmblem);
+  if (emblem_tuple) {
+    s_settings.show_emblem = emblem_tuple->value->int32 == 1;
+  }
+
+  save_settings();
+
+  if (s_window) {
+    window_set_background_color(s_window, current_background_color());
+  }
+
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);
+  }
+}
+
 static AppTimer *s_frame_timer;
 
 static GPath *s_digit_paths[SLOT_COUNT][VECTOR_MAX_CONTOURS];
@@ -594,6 +657,240 @@ static void frame_timer_handler(void *context) {
   start_disk_animation();
 }
 
+/*
+ * Kleines Schweizer Wappen im Drehpunkt des Ziffernblatts.
+ *
+ * - rotes Schild
+ * - weißes Kreuz in der Mitte
+ * - das Kreuz ist 3x3 Pixel groß und besteht aus 5 Pixeln
+ */
+/*
+ * Größeres Schweizer Wappen im Drehpunkt des Ziffernblatts.
+ *
+ * Gegenüber der ersten Version ungefähr doppelt so groß:
+ * - größeres rotes Schild
+ * - größeres weißes Kreuz
+ */
+/*
+ * Mittleres Schweizer Wappen im Drehpunkt des Ziffernblatts.
+ *
+ * Diese Variante liegt zwischen:
+ * - der ersten kleinen Version
+ * - der später zu großen doppelten Version
+ *
+ * Ziel: ungefähr 1,5x so groß wie das erste Wappen.
+ */
+/*
+ * Schweizer Wappen in mittlerer Größe mit sauberem Kreuz.
+ *
+ * Das Kreuz ist jetzt bewusst geometrisch klar definiert:
+ * - Schenkelbreite: 2 Pixel
+ * - Gesamthöhe: 6 Pixel
+ * - Gesamtbreite: 6 Pixel
+ */
+/*
+ * Kombiniertes Schweizer Mittellogo:
+ *
+ * - oben der Schriftzug SWISS, exakt 19 Pixel breit
+ * - danach eine komplett leere Pixelreihe
+ * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
+ *
+ * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
+ * des Ziffernblatts zentriert.
+ */
+/*
+ * Kombiniertes Schweizer Mittellogo:
+ *
+ * - oben der Schriftzug SWISS, exakt 19 Pixel breit
+ * - danach eine komplett leere Pixelreihe
+ * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
+ *
+ * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
+ * des Ziffernblatts zentriert.
+ */
+/*
+ * Kombiniertes Schweizer Mittellogo:
+ *
+ * - oben der Schriftzug SWISS, exakt 19 Pixel breit
+ * - danach eine komplett leere Pixelreihe
+ * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
+ *
+ * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
+ * des Ziffernblatts zentriert.
+ */
+/*
+ * Festes "SWISS + Wappen"-Logo, exakt in der Mitte des Displays.
+ *
+ * Das Raster ist absichtlich statisch:
+ * - oben der weiße Schriftzug "SWISS"
+ * - darunter ein rotes Schweizer Wappen mit weißem Kreuz
+ *
+ * Das gesamte Logo wird als Pixelraster zentriert gezeichnet.
+ */
+/*
+ * Festes SWISS-Logo mit Schweizer Kreuz, exakt nach dem
+ * vorgegebenen Pixelraster.
+ *
+ * Aufbau:
+ * - oben: "SWISS" in Weiß
+ * - 1 leere Pixelreihe Abstand
+ * - darunter: 8x8 Kreuzsymbol in Rot/Weiß
+ *
+ * Das komplette Logo wird als Einheit zentriert.
+ */
+/*
+ * Nur das kleine Schweizer Wappen, exakt nach dem vorgegebenen Raster.
+ *
+ * Raster:
+ * rrrrrrrr
+ * rrrwwrrr
+ * rrrwwrrr
+ * rwwwwwwr
+ * rwwwwwwr
+ * rrrwwrrr
+ * rrrwwrrr
+ * rrrrrrrr
+ * ..rrrr..
+ * ...rr...
+ *
+ * Das Symbol wird als 8x10-Pixelraster exakt in der Displaymitte zentriert.
+ */
+/*
+ * Nur das kleine Schweizer Wappen, exakt nach dem neuen Raster.
+ *
+ * Ursprungsraster:
+ * rrrrrrrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rwwwwwwwwwr
+ * rwwwwwwwwwr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrrrrrrr
+ * ..rrrrr..
+ * ...rrr...
+ * ....r....
+ *
+ * Für eine einheitliche Zeichenbreite werden die 9er- und
+ * kleineren Zeilen mittig auf 11 Pixel erweitert.
+ *
+ * Das Symbol wird als 11x13-Pixelraster exakt in der Displaymitte zentriert.
+ */
+/*
+ * Exaktes Schweizer Wappen nach dem vorgegebenen Pixelraster.
+ *
+ * Ursprungsraster:
+ * rrrrrrrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rwwwwwwwwwr
+ * rwwwwwwwwwr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrwwwrrr
+ * rrrrrrrrr
+ * ..rrrrr..
+ * ...rrr...
+ * ....r....
+ *
+ * Zur einheitlichen Zeichenbreite werden die 9-Pixel-Zeilen sauber
+ * mittig auf 11 Pixel erweitert. Das Wappen wird auf den echten
+ * Drehpunkt des Ziffernblatts zentriert: (100, 100).
+ */
+static void draw_center_emblem(
+    Layer *layer,
+    GContext *ctx) {
+  (void)layer;
+
+  static const char *EMBLEM_ROWS[14] = {
+    "..RRRRRRRRR..",
+    ".RRRRWWWRRRR.",
+    ".RRRRWWWRRRR.",
+    ".RRRRWWWRRRR.",
+    ".RWWWWWWWWWR.",
+    ".RWWWWWWWWWR.",
+    ".RWWWWWWWWWR.",
+    ".RRRRWWWRRRR.",
+    ".RRRRWWWRRRR.",
+    "..RRRWWWRRR..",
+    "..RRRRRRRRR..",
+    "....RRRRR....",
+    ".....RRR.....",
+    "......R......"
+  };
+
+  const int16_t emblem_width = 13;
+  const int16_t emblem_height = 14;
+
+
+
+
+  const GPoint pivot = GPoint(100, 100);
+
+  const int16_t left =
+      pivot.x - emblem_width / 2;
+
+  const int16_t top =
+      pivot.y - emblem_height / 2;
+
+  for (int16_t row = 0; row < emblem_height; ++row) {
+    int16_t run_start = -1;
+    char current_symbol = '.';
+
+    for (int16_t column = 0; column <= emblem_width; ++column) {
+      const char symbol =
+          (column < emblem_width)
+              ? EMBLEM_ROWS[row][column]
+              : '.';
+
+      const bool drawable =
+          symbol == 'W'
+          || symbol == 'R';
+
+      if (drawable && run_start < 0) {
+        run_start = column;
+        current_symbol = symbol;
+        continue;
+      }
+
+      if (drawable
+          && run_start >= 0
+          && symbol == current_symbol) {
+        continue;
+      }
+
+      if (run_start >= 0) {
+        graphics_context_set_fill_color(
+            ctx,
+            current_symbol == 'W'
+                ? GColorWhite
+                : GColorRed);
+
+        graphics_fill_rect(
+            ctx,
+            GRect(
+                left + run_start,
+                top + row,
+                column - run_start,
+                1),
+            0,
+            GCornerNone);
+
+        run_start = -1;
+        current_symbol = '.';
+      }
+
+      if (drawable) {
+        run_start = column;
+        current_symbol = symbol;
+      }
+    }
+  }
+}
+
 static void canvas_update_proc(
     Layer *layer,
     GContext *ctx) {
@@ -601,7 +898,7 @@ static void canvas_update_proc(
 
   graphics_context_set_fill_color(
       ctx,
-      GColorBlack);
+      current_background_color());
 
   graphics_fill_rect(
       ctx,
@@ -635,22 +932,30 @@ static void canvas_update_proc(
       graphics_context_set_fill_color(
           ctx,
           s_digit_path_is_hole[slot][i]
-              ? GColorBlack
-              : GColorWhite);
+              ? current_background_color()
+              : current_foreground_color());
 
       gpath_move_to(path, rotated_center);
       gpath_rotate_to(path, rotation);
       gpath_draw_filled(ctx, path);
     }
   }
+
+  if (s_settings.show_emblem) {
+    draw_center_emblem(
+        layer,
+        ctx);
+  }
+
 }
 
 static void init(void) {
+  load_settings();
   s_window = window_create();
 
   window_set_background_color(
       s_window,
-      GColorBlack);
+      current_background_color());
 
   Layer *root_layer =
       window_get_root_layer(s_window);
@@ -681,6 +986,11 @@ static void init(void) {
       MINUTE_UNIT,
       tick_handler);
 
+  app_message_register_inbox_received(
+      settings_inbox_received);
+
+  app_message_open(128, 128);
+
   /*
    * Kein permanenter Frame-Timer:
    * Nur eine deutliche Bewegung startet die Animation.
@@ -695,6 +1005,8 @@ static void deinit(void) {
     app_timer_cancel(s_frame_timer);
     s_frame_timer = NULL;
   }
+
+  app_message_deregister_callbacks();
 
   accel_data_service_unsubscribe();
   tick_timer_service_unsubscribe();
