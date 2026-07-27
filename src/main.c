@@ -2,69 +2,65 @@
 #include "vector_digits.h"
 
 #define SENSOR_RATE ACCEL_SAMPLING_10HZ
-#define SENSOR_BATCH_SIZE 1
-#define FRAME_INTERVAL_MS 56
 
 /*
- * Eine einzige gedämpfte Feder steuert die sichtbare Bewegung.
- * Dadurch entstehen Nachlauf und Übersteuern fließend aus
- * derselben Bewegung, ohne nachträglich gestarteten Bounce.
+ * Zwei Messwerte pro Callback:
+ * 10 Hz Sensormessung bei ungefähr fünf Callbacks pro Sekunde.
  */
-#define DISPLAY_SPRING_NUMERATOR 24
-#define DISPLAY_SPRING_DENOMINATOR 32
+#define SENSOR_BATCH_SIZE 2
 
-#define DISPLAY_DAMPING_NUMERATOR 15
-#define DISPLAY_DAMPING_DENOMINATOR 32
-
-#define DISPLAY_MAX_VELOCITY DEG_TO_TRIGANGLE(32)
-
-#define DISPLAY_STOP_ERROR (TRIG_MAX_ANGLE / 1800)
-#define DISPLAY_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
+/*
+ * Während einer Bewegung ungefähr 18 Bilder pro Sekunde.
+ * Im Stillstand läuft kein Frame-Timer.
+ */
+#define FRAME_INTERVAL_MS 56
 
 #define SLOT_COUNT 4
 
-/*
- * Festes Kegelmodell:
- *
- * Der virtuelle Neigungsvektor liegt IMMER auf einem Kreis
- * mit ungefähr 10 Grad Neigung. Es gibt keinen Zustand im
- * Inneren dieses Kreises und damit auch keinen Mittelpunkt,
- * den das Ziffernblatt überqueren könnte.
- *
- * sin(10 Grad) * 1000 mg ~= 174 mg
- */
-#define CONE_RADIUS_MG 175
-
-/*
- * Umfang der festen Kreisbahn:
- * 2 * pi * 175 mg ~= 1100 mg
- */
-#define CONE_CIRCUMFERENCE_MG 1100
-
-/*
- * Kleine reale Neigungen unter ungefähr 2 Grad erzeugen
- * überhaupt keine Bewegung. Dadurch bleibt das Ziffernblatt
- * bei waagerechter Uhr vollkommen ruhig.
- */
 #define MIN_INPUT_RADIUS_MG 35
 #define MIN_INPUT_RADIUS_SQUARED \
   ((int64_t)MIN_INPUT_RADIUS_MG * MIN_INPUT_RADIUS_MG)
 
 /*
- * Echte Winkeldeadzone:
- * Sie bleibt unabhängig von der Stärke der Neigung immer gleich.
+ * Ruhende Scheibe: ungefähr 7 Grad Deadzone.
  */
-#define ORBIT_ANGLE_DEADZONE DEG_TO_TRIGANGLE(4)
-#define TANGENTIAL_FORCE_NOISE_FLOOR_MG 1
+#define DISK_ANGLE_DEADZONE DEG_TO_TRIGANGLE(7)
+
+#define DISK_TORQUE_NOISE_FLOOR_MG 6
 
 /*
- * Pro Sensormessung wird ungefähr ein Drittel der
- * geometrisch notwendigen Winkelkorrektur ausgeführt.
+ * Freie gewichtete Scheibe.
+ *
+ * Die Dämpfung 27/32 bleibt erhalten, weil sich ihre normale
+ * Bewegung auf der echten Uhr sehr gut anfühlt.
  */
-#define CONE_RESPONSE_NUMERATOR 1
-#define CONE_RESPONSE_DENOMINATOR 3
+#define DISK_TORQUE_DIVISOR 40000
+#define DISK_DAMPING_NUMERATOR 27
+#define DISK_DAMPING_DENOMINATOR 32
 
-#define MAX_CONE_STEP (TRIG_MAX_ANGLE / 18)
+#define DISK_MAX_ACCELERATION DEG_TO_TRIGANGLE(8)
+#define DISK_MAX_VELOCITY DEG_TO_TRIGANGLE(28)
+#define DISK_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
+
+/*
+ * Weiche Einfangphase nach dem einmaligen Überschwingen.
+ *
+ * Sobald die Scheibe auf dem Rückweg nahe genug an die Endlage
+ * kommt, übernimmt eine stark gedämpfte Annäherung. Dadurch wird
+ * sie nicht mehr abrupt auf den Zielwinkel gesetzt.
+ */
+#define DISK_SETTLE_START_ANGLE DEG_TO_TRIGANGLE(18)
+
+#define DISK_SETTLE_SPRING_NUMERATOR 5
+#define DISK_SETTLE_SPRING_DENOMINATOR 32
+
+#define DISK_SETTLE_DAMPING_NUMERATOR 20
+#define DISK_SETTLE_DAMPING_DENOMINATOR 32
+
+#define DISK_SETTLE_MAX_VELOCITY DEG_TO_TRIGANGLE(12)
+#define DISK_SETTLE_STOP_ERROR (TRIG_MAX_ANGLE / 1800)
+#define DISK_SETTLE_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
+
 
 static Window *s_window;
 static Layer *s_canvas_layer;
@@ -77,19 +73,17 @@ static uint8_t s_digit_path_count[SLOT_COUNT];
 static int s_numbers[SLOT_COUNT] = {-1, -1, -1, -1};
 
 /*
- * Dieser Winkel ist der einzige Bewegungszustand des Kegels.
- * Er kann sich ausschließlich auf der festen Kreisbahn ändern.
+ * Frei gelagerte Scheibe mit Gewicht.
  */
-static int32_t s_cone_angle = TRIG_MAX_ANGLE / 4;
-static int32_t s_display_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_disk_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_disk_target_angle = TRIG_MAX_ANGLE / 4;
+static int32_t s_disk_velocity = 0;
+static int32_t s_disk_torque_mg = 0;
 
-/*
- * Geschwindigkeit der sichtbaren Federbewegung.
- * Nachlauf und Übersteuern entstehen direkt daraus.
- */
-static int32_t s_display_velocity = 0;
-
-static bool s_cone_initialized = false;
+static bool s_disk_initialized = false;
+static bool s_disk_motion_active = false;
+static bool s_disk_has_overshot = false;
+static bool s_disk_settling = false;
 
 static const GPoint SLOT_CENTERS[SLOT_COUNT] = {
   {50, 50},
@@ -277,24 +271,32 @@ static void tick_handler(
   update_time_digits(time_now);
 }
 
+static void frame_timer_handler(void *context);
+
+static void start_disk_animation(void) {
+  if (s_frame_timer) {
+    return;
+  }
+
+  s_frame_timer =
+      app_timer_register(
+          FRAME_INTERVAL_MS,
+          frame_timer_handler,
+          NULL);
+}
+
 /*
- * Tangentiale Kraft auf der festen Kegelbahn.
- *
- * Der reale Sensorvektor wird NICHT als neuer Winkel
- * übernommen. Stattdessen wird nur sein Anteil entlang
- * der Tangente an der aktuellen Kreisposition verwendet.
- *
- * Genau dadurch kann der virtuelle Kegel niemals durch
- * den Mittelpunkt springen.
+ * Tangentiale Schwerkraft relativ zur aktuellen Stellung
+ * der Scheibe. Nur dieser Anteil erzeugt ein Drehmoment.
  */
-static int32_t calculate_tangential_force_mg(
+static int32_t calculate_disk_torque_mg(
     int32_t sensor_x,
     int32_t sensor_y) {
   const int32_t sine =
-      sin_lookup(s_cone_angle);
+      sin_lookup(s_disk_angle);
 
   const int32_t cosine =
-      cos_lookup(s_cone_angle);
+      cos_lookup(s_disk_angle);
 
   const int64_t tangential_force =
       -(int64_t)sine * sensor_x
@@ -304,6 +306,19 @@ static int32_t calculate_tangential_force_mg(
       tangential_force / TRIG_MAX_RATIO);
 }
 
+static void settle_disk_at_target(void) {
+  s_disk_angle = s_disk_target_angle;
+  s_disk_velocity = 0;
+  s_disk_torque_mg = 0;
+  s_disk_motion_active = false;
+  s_disk_has_overshot = false;
+  s_disk_settling = false;
+
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);
+  }
+}
+
 static void accel_data_handler(
     AccelData *data,
     uint32_t num_samples) {
@@ -311,9 +326,11 @@ static void accel_data_handler(
     return;
   }
 
-  const AccelData sample = data[num_samples - 1];
+  const AccelData sample =
+      data[num_samples - 1];
 
   if (sample.did_vibrate) {
+    s_disk_torque_mg = 0;
     return;
   }
 
@@ -325,146 +342,256 @@ static void accel_data_handler(
       + (int64_t)sensor_y * sensor_y;
 
   /*
-   * Nur beim ersten Start darf eine eindeutige reale
-   * Neigung die Anfangsposition des Kegels festlegen.
-   * Danach wird atan2 nie wieder für die Bewegung benutzt.
+   * Bei nahezu waagerechter Uhr gibt es keine eindeutige
+   * Richtung. Die Scheibe erhält dann kein neues Drehmoment.
    */
-  if (!s_cone_initialized) {
-    s_cone_initialized = true;
+  if (input_radius_squared
+      < MIN_INPUT_RADIUS_SQUARED) {
+    s_disk_torque_mg = 0;
+    return;
+  }
 
-    if (input_radius_squared
-        >= MIN_INPUT_RADIUS_SQUARED) {
-      s_cone_angle =
-          atan2_lookup(
-              sensor_y,
-              sensor_x);
+  s_disk_target_angle =
+      atan2_lookup(
+          sensor_y,
+          sensor_x);
 
-      s_display_angle = s_cone_angle;
+  if (!s_disk_initialized) {
+    s_disk_angle = s_disk_target_angle;
+    s_disk_velocity = 0;
+    s_disk_torque_mg = 0;
+    s_disk_initialized = true;
+
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
     }
 
     return;
   }
 
-  /*
-   * Waagerecht bedeutet: keine tangentiale Kraft.
-   * Der Kegel bleibt an seiner festen Kreisposition stehen.
-   */
-  if (input_radius_squared
-      < MIN_INPUT_RADIUS_SQUARED) {
-    return;
-  }
-
-  /*
-   * Die Deadzone wird als Winkel gemessen und nicht mehr
-   * als feste Sensorstärke. Dadurch bleibt sie bei jeder
-   * Neigung gleich groß.
-   */
-  const int32_t measured_angle =
-      atan2_lookup(
-          sensor_y,
-          sensor_x);
-
   const int32_t angle_error =
       shortest_angle_difference(
-          s_cone_angle,
-          measured_angle);
+          s_disk_angle,
+          s_disk_target_angle);
 
-  if (absolute_i32(angle_error)
-      <= ORBIT_ANGLE_DEADZONE) {
+  /*
+   * Die große Deadzone gilt nur im Ruhezustand.
+   * Während einer laufenden Bewegung darf die Scheibe durch
+   * die Endlage hindurch einmal überschwingen.
+   */
+  if (!s_disk_motion_active) {
+    if (absolute_i32(angle_error)
+        <= DISK_ANGLE_DEADZONE) {
+      s_disk_torque_mg = 0;
+      return;
+    }
+
+    s_disk_motion_active = true;
+    s_disk_has_overshot = false;
+    s_disk_settling = false;
+  }
+
+  /*
+   * Während der weichen Einfangphase folgt die Scheibe nur noch
+   * dem Zielwinkel. Neues Sensordrehmoment wird dafür ignoriert.
+   */
+  if (s_disk_settling) {
+    s_disk_torque_mg = 0;
+    start_disk_animation();
     return;
   }
 
-  const int32_t tangential_force_mg =
-      calculate_tangential_force_mg(
+  const int32_t torque_mg =
+      calculate_disk_torque_mg(
           sensor_x,
           sensor_y);
 
-  if (absolute_i32(tangential_force_mg)
-      <= TANGENTIAL_FORCE_NOISE_FLOOR_MG) {
-    return;
-  }
+  s_disk_torque_mg =
+      absolute_i32(torque_mg)
+              <= DISK_TORQUE_NOISE_FLOOR_MG
+          ? 0
+          : torque_mg;
 
-  /*
-   * Kraft entlang des Kreisumfangs in eine Winkelbewegung
-   * auf genau derselben Kreisbahn umrechnen.
-   */
-  int32_t angle_step =
-      (int32_t)(
-          (int64_t)tangential_force_mg
-          * TRIG_MAX_ANGLE
-          * CONE_RESPONSE_NUMERATOR
-          / CONE_CIRCUMFERENCE_MG
-          / CONE_RESPONSE_DENOMINATOR);
-
-  angle_step =
-      clamp_i32(
-          angle_step,
-          -MAX_CONE_STEP,
-          MAX_CONE_STEP);
-
-  s_cone_angle =
-      normalize_angle(
-          s_cone_angle + angle_step);
+  start_disk_animation();
 }
 
 static void frame_timer_handler(void *context) {
   (void)context;
 
-  const int32_t error =
+  /*
+   * Der gerade ausgeführte Timer ist beendet.
+   * Nur eine weiterlaufende Bewegung startet den nächsten.
+   */
+  s_frame_timer = NULL;
+
+  const int32_t error_before =
       shortest_angle_difference(
-          s_display_angle,
-          s_cone_angle);
+          s_disk_angle,
+          s_disk_target_angle);
 
   /*
-   * Eine einzige Federbewegung:
+   * Nach dem ersten Überschwingen und auf dem Rückweg beginnt
+   * die weiche Einfangphase schon vor der Endlage.
    *
-   * - der Fehler zum Ziel erzeugt Beschleunigung
-   * - die aktuelle Geschwindigkeit erzeugt Nachlauf
-   * - die Dämpfung beruhigt die Bewegung wieder
-   *
-   * Dadurch beginnt das Übersteuern schon aus der laufenden
-   * Bewegung heraus und nicht erst nach einem sichtbaren Stopp.
+   * Die aktuelle Geschwindigkeit wird mit eingerechnet, damit
+   * auch eine schnelle Scheibe die Bremszone nicht überspringt.
    */
-  const int32_t acceleration =
-      (error
-       * DISPLAY_SPRING_NUMERATOR)
-      / DISPLAY_SPRING_DENOMINATOR;
+  const bool is_returning_to_target =
+      (s_disk_velocity > 0
+       && error_before > 0)
+      || (s_disk_velocity < 0
+          && error_before < 0);
 
-  s_display_velocity += acceleration;
+  if (!s_disk_settling
+      && s_disk_has_overshot
+      && is_returning_to_target
+      && absolute_i32(error_before)
+          <= DISK_SETTLE_START_ANGLE
+             + absolute_i32(s_disk_velocity)) {
+    s_disk_settling = true;
+    s_disk_torque_mg = 0;
+  }
 
-  s_display_velocity =
-      (s_display_velocity
-       * DISPLAY_DAMPING_NUMERATOR)
-      / DISPLAY_DAMPING_DENOMINATOR;
+  /*
+   * Kritisch gedämpfte Annäherung:
+   *
+   * - der Restfehler zieht zur Endlage
+   * - die Geschwindigkeit wird kontinuierlich abgebaut
+   * - es gibt kein weiteres sichtbares Hin-und-her
+   */
+  if (s_disk_settling) {
+    const int32_t settle_acceleration =
+        (error_before
+         * DISK_SETTLE_SPRING_NUMERATOR)
+        / DISK_SETTLE_SPRING_DENOMINATOR
+        -
+        (s_disk_velocity
+         * DISK_SETTLE_DAMPING_NUMERATOR)
+        / DISK_SETTLE_DAMPING_DENOMINATOR;
 
-  s_display_velocity =
-      clamp_i32(
-          s_display_velocity,
-          -DISPLAY_MAX_VELOCITY,
-          DISPLAY_MAX_VELOCITY);
+    s_disk_velocity +=
+        settle_acceleration;
 
-  if (absolute_i32(error)
-          <= DISPLAY_STOP_ERROR
-      && absolute_i32(s_display_velocity)
-          <= DISPLAY_STOP_VELOCITY) {
-    s_display_angle = s_cone_angle;
-    s_display_velocity = 0;
-  } else {
-    s_display_angle =
+    s_disk_velocity =
+        clamp_i32(
+            s_disk_velocity,
+            -DISK_SETTLE_MAX_VELOCITY,
+            DISK_SETTLE_MAX_VELOCITY);
+
+    if (absolute_i32(error_before)
+            <= DISK_SETTLE_STOP_ERROR
+        && absolute_i32(s_disk_velocity)
+            <= DISK_SETTLE_STOP_VELOCITY) {
+      settle_disk_at_target();
+      return;
+    }
+
+    const int32_t next_angle =
         normalize_angle(
-            s_display_angle
-            + s_display_velocity);
+            s_disk_angle
+            + s_disk_velocity);
+
+    const int32_t error_after =
+        shortest_angle_difference(
+            next_angle,
+            s_disk_target_angle);
+
+    const bool reached_target =
+        (error_before > 0
+         && error_after <= 0)
+        || (error_before < 0
+            && error_after >= 0)
+        || error_before == 0;
+
+    if (reached_target) {
+      settle_disk_at_target();
+      return;
+    }
+
+    s_disk_angle =
+        next_angle;
+
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
+    }
+
+    start_disk_animation();
+    return;
+  }
+
+  int32_t acceleration =
+      (int32_t)(
+          (int64_t)s_disk_torque_mg
+          * TRIG_MAX_ANGLE
+          / DISK_TORQUE_DIVISOR);
+
+  acceleration =
+      clamp_i32(
+          acceleration,
+          -DISK_MAX_ACCELERATION,
+          DISK_MAX_ACCELERATION);
+
+  s_disk_velocity += acceleration;
+
+  /*
+   * Die normale freie Bewegung bleibt exakt wie bisher.
+   */
+  s_disk_velocity =
+      (s_disk_velocity
+       * DISK_DAMPING_NUMERATOR)
+      / DISK_DAMPING_DENOMINATOR;
+
+  s_disk_velocity =
+      clamp_i32(
+          s_disk_velocity,
+          -DISK_MAX_VELOCITY,
+          DISK_MAX_VELOCITY);
+
+  if (s_disk_torque_mg == 0
+      && absolute_i32(s_disk_velocity)
+          <= DISK_STOP_VELOCITY) {
+    s_disk_velocity = 0;
+    s_disk_motion_active = false;
+    s_disk_has_overshot = false;
+    s_disk_settling = false;
+    return;
+  }
+
+  s_disk_angle =
+      normalize_angle(
+          s_disk_angle
+          + s_disk_velocity);
+
+  const int32_t error_after =
+      shortest_angle_difference(
+          s_disk_angle,
+          s_disk_target_angle);
+
+  const bool crossed_target =
+      (error_before > 0
+       && error_after <= 0)
+      || (error_before < 0
+          && error_after >= 0);
+
+  /*
+   * Das erste Überqueren bleibt das gewünschte Überschwingen.
+   * Ein unerwartet schnelles zweites Überqueren schaltet als
+   * Sicherheitsnetz ebenfalls in die weiche Einfangphase.
+   */
+  if (crossed_target) {
+    if (!s_disk_has_overshot) {
+      s_disk_has_overshot = true;
+    } else {
+      s_disk_settling = true;
+      s_disk_torque_mg = 0;
+    }
   }
 
   if (s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
   }
 
-  s_frame_timer =
-      app_timer_register(
-          FRAME_INTERVAL_MS,
-          frame_timer_handler,
-          NULL);
+  start_disk_animation();
 }
 
 static void canvas_update_proc(
@@ -485,7 +612,7 @@ static void canvas_update_proc(
   const int32_t rotation =
       normalize_angle(
           DEG_TO_TRIGANGLE(270)
-          - s_display_angle);
+          - s_disk_angle);
 
   for (int slot = 0;
        slot < SLOT_COUNT;
@@ -554,11 +681,11 @@ static void init(void) {
       MINUTE_UNIT,
       tick_handler);
 
-  s_frame_timer =
-      app_timer_register(
-          FRAME_INTERVAL_MS,
-          frame_timer_handler,
-          NULL);
+  /*
+   * Kein permanenter Frame-Timer:
+   * Nur eine deutliche Bewegung startet die Animation.
+   */
+  s_frame_timer = NULL;
 
   window_stack_push(s_window, true);
 }
