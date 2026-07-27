@@ -62,7 +62,6 @@
 #define DISK_SETTLE_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
 
 
-
 static Window *s_window;
 static Layer *s_canvas_layer;
 
@@ -90,28 +89,45 @@ static GColor current_foreground_color(void) {
 
 static void load_settings(void) {
   if (persist_exists(SETTINGS_PERSIST_KEY)) {
-    persist_read_data(SETTINGS_PERSIST_KEY, &s_settings, sizeof(s_settings));
+    persist_read_data(
+        SETTINGS_PERSIST_KEY,
+        &s_settings,
+        sizeof(s_settings));
   }
 }
 
 static void save_settings(void) {
-  persist_write_data(SETTINGS_PERSIST_KEY, &s_settings, sizeof(s_settings));
+  persist_write_data(
+      SETTINGS_PERSIST_KEY,
+      &s_settings,
+      sizeof(s_settings));
 }
 
-static void settings_inbox_received(DictionaryIterator *iterator, void *context) {
+static void settings_inbox_received(
+    DictionaryIterator *iterator,
+    void *context) {
   (void)context;
 
-  Tuple *background_tuple = dict_find(iterator, MESSAGE_KEY_BackgroundColor);
+  Tuple *background_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_BackgroundColor);
   if (background_tuple) {
     s_settings.background_hex = (uint32_t)background_tuple->value->int32;
   }
 
-  Tuple *foreground_tuple = dict_find(iterator, MESSAGE_KEY_ForegroundColor);
+  Tuple *foreground_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_ForegroundColor);
   if (foreground_tuple) {
     s_settings.foreground_hex = (uint32_t)foreground_tuple->value->int32;
   }
 
-  Tuple *emblem_tuple = dict_find(iterator, MESSAGE_KEY_ShowEmblem);
+  Tuple *emblem_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_ShowEmblem);
   if (emblem_tuple) {
     s_settings.show_emblem = emblem_tuple->value->int32 == 1;
   }
@@ -119,7 +135,9 @@ static void settings_inbox_received(DictionaryIterator *iterator, void *context)
   save_settings();
 
   if (s_window) {
-    window_set_background_color(s_window, current_background_color());
+    window_set_background_color(
+        s_window,
+        current_background_color());
   }
 
   if (s_canvas_layer) {
@@ -658,127 +676,6 @@ static void frame_timer_handler(void *context) {
 }
 
 /*
- * Kleines Schweizer Wappen im Drehpunkt des Ziffernblatts.
- *
- * - rotes Schild
- * - weißes Kreuz in der Mitte
- * - das Kreuz ist 3x3 Pixel groß und besteht aus 5 Pixeln
- */
-/*
- * Größeres Schweizer Wappen im Drehpunkt des Ziffernblatts.
- *
- * Gegenüber der ersten Version ungefähr doppelt so groß:
- * - größeres rotes Schild
- * - größeres weißes Kreuz
- */
-/*
- * Mittleres Schweizer Wappen im Drehpunkt des Ziffernblatts.
- *
- * Diese Variante liegt zwischen:
- * - der ersten kleinen Version
- * - der später zu großen doppelten Version
- *
- * Ziel: ungefähr 1,5x so groß wie das erste Wappen.
- */
-/*
- * Schweizer Wappen in mittlerer Größe mit sauberem Kreuz.
- *
- * Das Kreuz ist jetzt bewusst geometrisch klar definiert:
- * - Schenkelbreite: 2 Pixel
- * - Gesamthöhe: 6 Pixel
- * - Gesamtbreite: 6 Pixel
- */
-/*
- * Kombiniertes Schweizer Mittellogo:
- *
- * - oben der Schriftzug SWISS, exakt 19 Pixel breit
- * - danach eine komplett leere Pixelreihe
- * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
- *
- * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
- * des Ziffernblatts zentriert.
- */
-/*
- * Kombiniertes Schweizer Mittellogo:
- *
- * - oben der Schriftzug SWISS, exakt 19 Pixel breit
- * - danach eine komplett leere Pixelreihe
- * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
- *
- * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
- * des Ziffernblatts zentriert.
- */
-/*
- * Kombiniertes Schweizer Mittellogo:
- *
- * - oben der Schriftzug SWISS, exakt 19 Pixel breit
- * - danach eine komplett leere Pixelreihe
- * - darunter ein rotes Schweizer Wappen, ebenfalls 19 Pixel breit
- *
- * Das gesamte 19 x 19 Pixel große Logo ist genau im Drehpunkt
- * des Ziffernblatts zentriert.
- */
-/*
- * Festes "SWISS + Wappen"-Logo, exakt in der Mitte des Displays.
- *
- * Das Raster ist absichtlich statisch:
- * - oben der weiße Schriftzug "SWISS"
- * - darunter ein rotes Schweizer Wappen mit weißem Kreuz
- *
- * Das gesamte Logo wird als Pixelraster zentriert gezeichnet.
- */
-/*
- * Festes SWISS-Logo mit Schweizer Kreuz, exakt nach dem
- * vorgegebenen Pixelraster.
- *
- * Aufbau:
- * - oben: "SWISS" in Weiß
- * - 1 leere Pixelreihe Abstand
- * - darunter: 8x8 Kreuzsymbol in Rot/Weiß
- *
- * Das komplette Logo wird als Einheit zentriert.
- */
-/*
- * Nur das kleine Schweizer Wappen, exakt nach dem vorgegebenen Raster.
- *
- * Raster:
- * rrrrrrrr
- * rrrwwrrr
- * rrrwwrrr
- * rwwwwwwr
- * rwwwwwwr
- * rrrwwrrr
- * rrrwwrrr
- * rrrrrrrr
- * ..rrrr..
- * ...rr...
- *
- * Das Symbol wird als 8x10-Pixelraster exakt in der Displaymitte zentriert.
- */
-/*
- * Nur das kleine Schweizer Wappen, exakt nach dem neuen Raster.
- *
- * Ursprungsraster:
- * rrrrrrrrr
- * rrrwwwrrr
- * rrrwwwrrr
- * rrrwwwrrr
- * rwwwwwwwwwr
- * rwwwwwwwwwr
- * rrrwwwrrr
- * rrrwwwrrr
- * rrrwwwrrr
- * rrrrrrrrr
- * ..rrrrr..
- * ...rrr...
- * ....r....
- *
- * Für eine einheitliche Zeichenbreite werden die 9er- und
- * kleineren Zeilen mittig auf 11 Pixel erweitert.
- *
- * Das Symbol wird als 11x13-Pixelraster exakt in der Displaymitte zentriert.
- */
-/*
  * Exaktes Schweizer Wappen nach dem vorgegebenen Pixelraster.
  *
  * Ursprungsraster:
@@ -826,9 +723,7 @@ static void draw_center_emblem(
   const int16_t emblem_height = 14;
 
 
-
-
-  const GPoint pivot = GPoint(100, 100);
+  const GPoint pivot = BOARD_CENTER;
 
   const int16_t left =
       pivot.x - emblem_width / 2;

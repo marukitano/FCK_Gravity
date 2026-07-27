@@ -20,23 +20,24 @@ Handgelenks aufrecht bleibt.
 - Vektorbasiert gezeichnete Ziffern
 - Gemeinsame Rotation aller vier Ziffernblöcke
 - Unterstützung für das 12- und 24-Stunden-Format
-- Feste virtuelle Kegelbahn für eine stabile Bewegung
+- Frei gelagerte, gewichtete Scheibenbewegung
 - Kein Zittern bei annähernd waagerechter Haltung
 - Gleichmäßige Winkeldeadzone
-- Gedämpfte Federbewegung mit leichtem natürlichem Übersteuern
+- Einmaliges natürliches Überschwingen mit weicher Endlage
 - Sensorabtastung mit 10 Hz
 - Darstellung mit ungefähr 18 Bildern pro Sekunde
+- Einstellbare Schrift- und Hintergrundfarbe
+- Optional ausblendbares Schweizer Wappen im Drehpunkt
 
 ### Bewegungsmodell
 
-Die Anzeige bewegt sich auf einer festen virtuellen Kreisbahn. Dieses Modell
-entspricht einem umgekippten Kegel, dessen Grundfläche sich um den Mittelpunkt
-drehen kann, den Mittelpunkt selbst aber niemals überquert.
+Die Anzeige verhält sich wie eine frei gelagerte, gewichtete Scheibe. Der
+Beschleunigungssensor erzeugt ein tangentiales Drehmoment, wodurch sich das
+gesamte Ziffernblatt flüssig nach der Schwerkraft ausrichtet.
 
-Dadurch bleibt die Ausrichtung auch dann stabil, wenn die Uhr nahezu waagerecht
-gehalten wird. Kleine unbeabsichtigte Bewegungen werden von einer
-Winkeldeadzone ignoriert. Eine gedämpfte Federbewegung sorgt beim Abbremsen für
-ein dezentes und flüssiges Übersteuern.
+Eine Winkeldeadzone verhindert Zittern bei kleinen Bewegungen. Beim Abbremsen
+darf die Anzeige einmal natürlich überschwingen und wird anschließend weich in
+die Endlage geführt.
 
 ### Ursprung
 
@@ -73,22 +74,24 @@ to gravity, keeping the time upright as the wrist moves.
 - Vector-rendered digits
 - Unified rotation of all four digit blocks
 - Support for both 12-hour and 24-hour time formats
-- Fixed virtual cone orbit for stable movement
+- Freely suspended weighted-disc motion
 - No jitter when the watch is held nearly flat
 - Consistent angular deadzone
-- Damped spring motion with subtle natural overshoot
+- One natural overshoot followed by soft final settling
 - 10 Hz accelerometer sampling
 - Rendering at approximately 18 frames per second
+- Configurable foreground and background colors
+- Optional Swiss emblem at the rotation pivot
 
 ### Motion model
 
-The display moves along a fixed virtual circular orbit. This model behaves like
-an overturned cone whose base can rotate around the center but can never pass
-through it.
+The display behaves like a freely suspended weighted disc. Accelerometer input
+creates tangential torque, allowing the complete watchface to align smoothly
+with gravity.
 
-This keeps the orientation stable even when the watch is held nearly flat.
-Small unintended movements are ignored by an angular deadzone. A damped spring
-adds a subtle and fluid overshoot as the display comes to rest.
+An angular deadzone prevents jitter during small movements. As the display
+slows down, it is allowed one natural overshoot before softly settling into its
+final position.
 
 ### Origin
 
