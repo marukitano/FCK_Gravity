@@ -47,6 +47,11 @@ der sorgfältig abgestimmten Standardbewegung.
 
 ### Ursprung
 
+FCK_Gravity wird von einem Schweizer Entwickler gepflegt und ist bewusst als
+Schweizer Ziffernblatt gestaltet. Das kleine Schweizer Wappen im Drehpunkt ist
+als augenzwinkerndes Detail gedacht und kann in den Einstellungen jederzeit
+ausgeblendet werden.
+
 Gravity basiert auf dem ursprünglichen Pebble-Watchface **Upright** von
 **Jnm**. Die ursprünglichen Zifferngrafiken wurden in Vektorpfade umgewandelt
 und das Watchface für die Pebble Time 2 sowie das aktuelle Pebble-SDK
@@ -104,6 +109,10 @@ Four sliders control inertia, speed or effective weight, friction, and deadzone.
 The centered setting `5 / 5 / 5 / 5` is the carefully tuned default motion.
 
 ### Origin
+
+FCK_Gravity is maintained by a Swiss developer and is intentionally presented
+as a Swiss watchface. The small Swiss emblem at the rotation pivot is meant as
+a playful detail and can be hidden at any time in the settings.
 
 Gravity is based on the original Pebble watchface **Upright** by **Jnm**. The
 original digit graphics were converted into vector paths, and the watchface
