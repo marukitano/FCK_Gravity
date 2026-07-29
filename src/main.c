@@ -22,62 +22,126 @@
   ((int64_t)MIN_INPUT_RADIUS_MG * MIN_INPUT_RADIUS_MG)
 
 /*
- * Ruhende Scheibe: ungefähr 7 Grad Deadzone.
- */
-#define DISK_ANGLE_DEADZONE DEG_TO_TRIGANGLE(7)
-
-#define DISK_TORQUE_NOISE_FLOOR_MG 6
-
-/*
- * Freie gewichtete Scheibe.
+ * Ölbad-Modell:
  *
- * Die Dämpfung 27/32 bleibt erhalten, weil sich ihre normale
- * Bewegung auf der echten Uhr sehr gut anfühlt.
- */
-#define DISK_TORQUE_DIVISOR 40000
-#define DISK_DAMPING_NUMERATOR 27
-#define DISK_DAMPING_DENOMINATOR 32
-
-#define DISK_MAX_ACCELERATION DEG_TO_TRIGANGLE(8)
-#define DISK_MAX_VELOCITY DEG_TO_TRIGANGLE(28)
-#define DISK_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
-
-/*
- * Weiche Einfangphase nach dem einmaligen Überschwingen.
+ * Die Scheibe wird durch das tangentiale Gewichtsdrehmoment angetrieben.
+ * Das Öl erzeugt einen geschwindigkeitsabhängigen Widerstand. Trägheit
+ * verlangsamt sowohl das Beschleunigen als auch das Abbremsen.
  *
- * Sobald die Scheibe auf dem Rückweg nahe genug an die Endlage
- * kommt, übernimmt eine stark gedämpfte Annäherung. Dadurch wird
- * sie nicht mehr abrupt auf den Zielwinkel gesetzt.
+ * Ein kleines Losbrechmoment verhindert Reaktionen auf winzige Bewegungen.
  */
-#define DISK_SETTLE_START_ANGLE DEG_TO_TRIGANGLE(18)
+#define DISK_ANGLE_DEADZONE DEG_TO_TRIGANGLE(4)
 
-#define DISK_SETTLE_SPRING_NUMERATOR 5
-#define DISK_SETTLE_SPRING_DENOMINATOR 32
+#define OIL_BREAKAWAY_EFFECTIVE_TORQUE 90
+#define OIL_HOLD_EFFECTIVE_TORQUE 45
 
-#define DISK_SETTLE_DAMPING_NUMERATOR 20
-#define DISK_SETTLE_DAMPING_DENOMINATOR 32
+#define OIL_DRIVE_DIVISOR 160000
+#define OIL_DRAG_NUMERATOR 3
+#define OIL_DRAG_SCALE 16
 
-#define DISK_SETTLE_MAX_VELOCITY DEG_TO_TRIGANGLE(12)
-#define DISK_SETTLE_STOP_ERROR (TRIG_MAX_ANGLE / 1800)
-#define DISK_SETTLE_STOP_VELOCITY (TRIG_MAX_ANGLE / 2400)
-
+#define OIL_MAX_ACCELERATION DEG_TO_TRIGANGLE(12)
+#define OIL_MAX_VELOCITY DEG_TO_TRIGANGLE(32)
+#define OIL_STOP_VELOCITY (TRIG_MAX_ANGLE / 3000)
 
 static Window *s_window;
 static Layer *s_canvas_layer;
 
-#define SETTINGS_PERSIST_KEY 4242
+#define SETTINGS_PERSIST_KEY 4243
+#define LEGACY_SETTINGS_PERSIST_KEY 4242
+
+#define SETTING_MIN 1
+#define SETTING_MAX 10
+#define DEFAULT_INERTIA 5
+#define DEFAULT_SPEED 5
+#define DEFAULT_FRICTION 5
+#define DEFAULT_DEADZONE 5
 
 typedef struct {
   uint32_t background_hex;
   uint32_t foreground_hex;
   bool show_emblem;
+} LegacyWatchfaceSettings;
+
+typedef struct {
+  uint32_t background_hex;
+  uint32_t foreground_hex;
+  bool show_emblem;
+  uint8_t inertia;
+  uint8_t speed;
+  uint8_t friction;
+  uint8_t deadzone;
 } WatchfaceSettings;
 
 static WatchfaceSettings s_settings = {
   .background_hex = 0x000000,
   .foreground_hex = 0xFFFFFF,
-  .show_emblem = true
+  .show_emblem = true,
+  .inertia = DEFAULT_INERTIA,
+  .speed = DEFAULT_SPEED,
+  .friction = DEFAULT_FRICTION,
+  .deadzone = DEFAULT_DEADZONE
 };
+
+static uint8_t clamp_setting(int32_t value) {
+  if (value < SETTING_MIN) {
+    return SETTING_MIN;
+  }
+
+  if (value > SETTING_MAX) {
+    return SETTING_MAX;
+  }
+
+  return (uint8_t)value;
+}
+
+
+static int32_t map_centered_setting(
+    uint8_t setting,
+    int32_t minimum,
+    int32_t center,
+    int32_t maximum) {
+  const int32_t value = clamp_setting(setting);
+
+  if (value <= 5) {
+    return minimum
+        + ((center - minimum) * (value - 1)) / 4;
+  }
+
+  return center
+      + ((maximum - center) * (value - 5)) / 5;
+}
+
+static int32_t configured_inertia(void) {
+  return map_centered_setting(
+      s_settings.inertia,
+      1,
+      2,
+      6);
+}
+
+static int32_t configured_speed(void) {
+  return map_centered_setting(
+      s_settings.speed,
+      1,
+      5,
+      10);
+}
+
+static int32_t configured_friction(void) {
+  return map_centered_setting(
+      s_settings.friction,
+      3,
+      12,
+      20);
+}
+
+static int32_t configured_deadzone_degrees(void) {
+  return map_centered_setting(
+      s_settings.deadzone,
+      4,
+      20,
+      35);
+}
 
 static GColor current_background_color(void) {
   return GColorFromHEX(s_settings.background_hex);
@@ -87,20 +151,60 @@ static GColor current_foreground_color(void) {
   return GColorFromHEX(s_settings.foreground_hex);
 }
 
+static void save_settings(void) {
+  persist_write_data(
+      SETTINGS_PERSIST_KEY,
+      &s_settings,
+      sizeof(s_settings));
+}
+
 static void load_settings(void) {
   if (persist_exists(SETTINGS_PERSIST_KEY)) {
     persist_read_data(
         SETTINGS_PERSIST_KEY,
         &s_settings,
         sizeof(s_settings));
-  }
-}
+  } else if (persist_exists(LEGACY_SETTINGS_PERSIST_KEY)) {
+    LegacyWatchfaceSettings legacy_settings = {
+      .background_hex = 0x000000,
+      .foreground_hex = 0xFFFFFF,
+      .show_emblem = true
+    };
 
-static void save_settings(void) {
-  persist_write_data(
-      SETTINGS_PERSIST_KEY,
-      &s_settings,
-      sizeof(s_settings));
+    persist_read_data(
+        LEGACY_SETTINGS_PERSIST_KEY,
+        &legacy_settings,
+        sizeof(legacy_settings));
+
+    s_settings.background_hex =
+        legacy_settings.background_hex;
+    s_settings.foreground_hex =
+        legacy_settings.foreground_hex;
+    s_settings.show_emblem =
+        legacy_settings.show_emblem;
+
+    save_settings();
+  }
+
+  s_settings.inertia =
+      clamp_setting(s_settings.inertia);
+  s_settings.speed =
+      clamp_setting(s_settings.speed);
+  s_settings.friction =
+      clamp_setting(s_settings.friction);
+  s_settings.deadzone =
+      clamp_setting(s_settings.deadzone);
+
+  if (s_settings.inertia == 3
+      && s_settings.speed == 5
+      && s_settings.friction == 8
+      && s_settings.deadzone == 10) {
+    s_settings.inertia = 5;
+    s_settings.speed = 5;
+    s_settings.friction = 5;
+    s_settings.deadzone = 5;
+    save_settings();
+  }
 }
 
 static void settings_inbox_received(
@@ -112,24 +216,70 @@ static void settings_inbox_received(
       dict_find(
           iterator,
           MESSAGE_KEY_BackgroundColor);
+
   if (background_tuple) {
-    s_settings.background_hex = (uint32_t)background_tuple->value->int32;
+    s_settings.background_hex =
+        (uint32_t)background_tuple->value->int32;
   }
 
   Tuple *foreground_tuple =
       dict_find(
           iterator,
           MESSAGE_KEY_ForegroundColor);
+
   if (foreground_tuple) {
-    s_settings.foreground_hex = (uint32_t)foreground_tuple->value->int32;
+    s_settings.foreground_hex =
+        (uint32_t)foreground_tuple->value->int32;
   }
 
   Tuple *emblem_tuple =
       dict_find(
           iterator,
           MESSAGE_KEY_ShowEmblem);
+
   if (emblem_tuple) {
-    s_settings.show_emblem = emblem_tuple->value->int32 == 1;
+    s_settings.show_emblem =
+        emblem_tuple->value->int32 == 1;
+  }
+
+  Tuple *inertia_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_Inertia);
+
+  if (inertia_tuple) {
+    s_settings.inertia =
+        clamp_setting(inertia_tuple->value->int32);
+  }
+
+  Tuple *speed_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_Speed);
+
+  if (speed_tuple) {
+    s_settings.speed =
+        clamp_setting(speed_tuple->value->int32);
+  }
+
+  Tuple *friction_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_Friction);
+
+  if (friction_tuple) {
+    s_settings.friction =
+        clamp_setting(friction_tuple->value->int32);
+  }
+
+  Tuple *deadzone_tuple =
+      dict_find(
+          iterator,
+          MESSAGE_KEY_Deadzone);
+
+  if (deadzone_tuple) {
+    s_settings.deadzone =
+        clamp_setting(deadzone_tuple->value->int32);
   }
 
   save_settings();
@@ -154,7 +304,7 @@ static uint8_t s_digit_path_count[SLOT_COUNT];
 static int s_numbers[SLOT_COUNT] = {-1, -1, -1, -1};
 
 /*
- * Frei gelagerte Scheibe mit Gewicht.
+ * Frei gelagerte Scheibe mit Gewicht im Ölbad.
  */
 static int32_t s_disk_angle = TRIG_MAX_ANGLE / 4;
 static int32_t s_disk_target_angle = TRIG_MAX_ANGLE / 4;
@@ -163,8 +313,6 @@ static int32_t s_disk_torque_mg = 0;
 
 static bool s_disk_initialized = false;
 static bool s_disk_motion_active = false;
-static bool s_disk_has_overshot = false;
-static bool s_disk_settling = false;
 
 static const GPoint SLOT_CENTERS[SLOT_COUNT] = {
   {50, 50},
@@ -387,19 +535,6 @@ static int32_t calculate_disk_torque_mg(
       tangential_force / TRIG_MAX_RATIO);
 }
 
-static void settle_disk_at_target(void) {
-  s_disk_angle = s_disk_target_angle;
-  s_disk_velocity = 0;
-  s_disk_torque_mg = 0;
-  s_disk_motion_active = false;
-  s_disk_has_overshot = false;
-  s_disk_settling = false;
-
-  if (s_canvas_layer) {
-    layer_mark_dirty(s_canvas_layer);
-  }
-}
-
 static void accel_data_handler(
     AccelData *data,
     uint32_t num_samples) {
@@ -423,8 +558,8 @@ static void accel_data_handler(
       + (int64_t)sensor_y * sensor_y;
 
   /*
-   * Bei nahezu waagerechter Uhr gibt es keine eindeutige
-   * Richtung. Die Scheibe erhält dann kein neues Drehmoment.
+   * Bei nahezu waagerechter Uhr gibt es keine eindeutige Richtung.
+   * Eine bereits laufende Scheibe wird dann nur noch vom Öl gebremst.
    */
   if (input_radius_squared
       < MIN_INPUT_RADIUS_SQUARED) {
@@ -455,186 +590,127 @@ static void accel_data_handler(
           s_disk_angle,
           s_disk_target_angle);
 
+  const int32_t configured_deadzone =
+      DEG_TO_TRIGANGLE(
+          configured_deadzone_degrees());
+
   /*
-   * Die große Deadzone gilt nur im Ruhezustand.
-   * Während einer laufenden Bewegung darf die Scheibe durch
-   * die Endlage hindurch einmal überschwingen.
+   * Beim Losfahren gilt die volle einstellbare Deadzone.
+   * Während der Bewegung gilt eine kleinere Halte-Deadzone,
+   * damit die Scheibe im Zielbereich vom Öl ausrollen kann,
+   * ohne dort künstlich festzuschnappen.
+   */
+  const int32_t moving_deadzone =
+      configured_deadzone > DEG_TO_TRIGANGLE(1)
+          ? configured_deadzone / 2
+          : configured_deadzone;
+
+  int32_t torque_mg =
+      calculate_disk_torque_mg(
+          sensor_x,
+          sensor_y);
+
+  if (s_disk_motion_active
+      && absolute_i32(angle_error)
+          <= moving_deadzone) {
+    torque_mg = 0;
+  }
+
+  const int32_t effective_torque =
+      torque_mg * configured_speed();
+
+  /*
+   * Haftreibung beziehungsweise Fließgrenze:
+   * Im Stillstand muss sowohl die Winkeldeadzone als auch das
+   * Losbrechmoment überwunden werden.
    */
   if (!s_disk_motion_active) {
     if (absolute_i32(angle_error)
-        <= DISK_ANGLE_DEADZONE) {
+            <= configured_deadzone
+        || absolute_i32(effective_torque)
+            < OIL_BREAKAWAY_EFFECTIVE_TORQUE) {
       s_disk_torque_mg = 0;
       return;
     }
 
     s_disk_motion_active = true;
-    s_disk_has_overshot = false;
-    s_disk_settling = false;
   }
 
-  /*
-   * Während der weichen Einfangphase folgt die Scheibe nur noch
-   * dem Zielwinkel. Neues Sensordrehmoment wird dafür ignoriert.
-   */
-  if (s_disk_settling) {
-    s_disk_torque_mg = 0;
-    start_disk_animation();
-    return;
-  }
-
-  const int32_t torque_mg =
-      calculate_disk_torque_mg(
-          sensor_x,
-          sensor_y);
-
-  s_disk_torque_mg =
-      absolute_i32(torque_mg)
-              <= DISK_TORQUE_NOISE_FLOOR_MG
-          ? 0
-          : torque_mg;
-
+  s_disk_torque_mg = torque_mg;
   start_disk_animation();
 }
 
 static void frame_timer_handler(void *context) {
   (void)context;
 
-  /*
-   * Der gerade ausgeführte Timer ist beendet.
-   * Nur eine weiterlaufende Bewegung startet den nächsten.
-   */
   s_frame_timer = NULL;
 
-  const int32_t error_before =
-      shortest_angle_difference(
-          s_disk_angle,
-          s_disk_target_angle);
-
-  /*
-   * Nach dem ersten Überschwingen und auf dem Rückweg beginnt
-   * die weiche Einfangphase schon vor der Endlage.
-   *
-   * Die aktuelle Geschwindigkeit wird mit eingerechnet, damit
-   * auch eine schnelle Scheibe die Bremszone nicht überspringt.
-   */
-  const bool is_returning_to_target =
-      (s_disk_velocity > 0
-       && error_before > 0)
-      || (s_disk_velocity < 0
-          && error_before < 0);
-
-  if (!s_disk_settling
-      && s_disk_has_overshot
-      && is_returning_to_target
-      && absolute_i32(error_before)
-          <= DISK_SETTLE_START_ANGLE
-             + absolute_i32(s_disk_velocity)) {
-    s_disk_settling = true;
-    s_disk_torque_mg = 0;
-  }
-
-  /*
-   * Kritisch gedämpfte Annäherung:
-   *
-   * - der Restfehler zieht zur Endlage
-   * - die Geschwindigkeit wird kontinuierlich abgebaut
-   * - es gibt kein weiteres sichtbares Hin-und-her
-   */
-  if (s_disk_settling) {
-    const int32_t settle_acceleration =
-        (error_before
-         * DISK_SETTLE_SPRING_NUMERATOR)
-        / DISK_SETTLE_SPRING_DENOMINATOR
-        -
-        (s_disk_velocity
-         * DISK_SETTLE_DAMPING_NUMERATOR)
-        / DISK_SETTLE_DAMPING_DENOMINATOR;
-
-    s_disk_velocity +=
-        settle_acceleration;
-
-    s_disk_velocity =
-        clamp_i32(
-            s_disk_velocity,
-            -DISK_SETTLE_MAX_VELOCITY,
-            DISK_SETTLE_MAX_VELOCITY);
-
-    if (absolute_i32(error_before)
-            <= DISK_SETTLE_STOP_ERROR
-        && absolute_i32(s_disk_velocity)
-            <= DISK_SETTLE_STOP_VELOCITY) {
-      settle_disk_at_target();
-      return;
-    }
-
-    const int32_t next_angle =
-        normalize_angle(
-            s_disk_angle
-            + s_disk_velocity);
-
-    const int32_t error_after =
-        shortest_angle_difference(
-            next_angle,
-            s_disk_target_angle);
-
-    const bool reached_target =
-        (error_before > 0
-         && error_after <= 0)
-        || (error_before < 0
-            && error_after >= 0)
-        || error_before == 0;
-
-    if (reached_target) {
-      settle_disk_at_target();
-      return;
-    }
-
-    s_disk_angle =
-        next_angle;
-
-    if (s_canvas_layer) {
-      layer_mark_dirty(s_canvas_layer);
-    }
-
-    start_disk_animation();
+  if (!s_disk_motion_active) {
     return;
   }
 
-  int32_t acceleration =
+  const int32_t inertia =
+      configured_inertia();
+
+  const int32_t effective_torque =
+      s_disk_torque_mg
+      * configured_speed();
+
+  /*
+   * Einheitliches Ölbad-Modell:
+   *
+   *   Trägheit * Beschleunigung
+   *     = Gewichtsdrehmoment - viskoser Widerstand
+   */
+  const int32_t drive_acceleration =
       (int32_t)(
-          (int64_t)s_disk_torque_mg
+          (int64_t)effective_torque
           * TRIG_MAX_ANGLE
-          / DISK_TORQUE_DIVISOR);
+          / ((int64_t)OIL_DRIVE_DIVISOR
+             * inertia));
+
+  const int32_t friction =
+      configured_friction();
+
+  /*
+   * Reibung 3 entspricht ungefähr der bisherigen Abstimmung.
+   * Höhere Werte erhöhen den Öl-/Lagerwiderstand deutlich und
+   * reduzieren dadurch das mehrfache Nachschwingen.
+   */
+  const int32_t drag_acceleration =
+      (int32_t)(
+          (int64_t)s_disk_velocity
+          * OIL_DRAG_NUMERATOR
+          * friction
+          / ((int64_t)OIL_DRAG_SCALE
+             * inertia
+             * 3));
+
+  int32_t acceleration =
+      drive_acceleration
+      - drag_acceleration;
 
   acceleration =
       clamp_i32(
           acceleration,
-          -DISK_MAX_ACCELERATION,
-          DISK_MAX_ACCELERATION);
+          -OIL_MAX_ACCELERATION,
+          OIL_MAX_ACCELERATION);
 
   s_disk_velocity += acceleration;
-
-  /*
-   * Die normale freie Bewegung bleibt exakt wie bisher.
-   */
-  s_disk_velocity =
-      (s_disk_velocity
-       * DISK_DAMPING_NUMERATOR)
-      / DISK_DAMPING_DENOMINATOR;
 
   s_disk_velocity =
       clamp_i32(
           s_disk_velocity,
-          -DISK_MAX_VELOCITY,
-          DISK_MAX_VELOCITY);
+          -OIL_MAX_VELOCITY,
+          OIL_MAX_VELOCITY);
 
-  if (s_disk_torque_mg == 0
+  if (absolute_i32(effective_torque)
+          <= OIL_HOLD_EFFECTIVE_TORQUE
       && absolute_i32(s_disk_velocity)
-          <= DISK_STOP_VELOCITY) {
+          <= OIL_STOP_VELOCITY) {
     s_disk_velocity = 0;
+    s_disk_torque_mg = 0;
     s_disk_motion_active = false;
-    s_disk_has_overshot = false;
-    s_disk_settling = false;
     return;
   }
 
@@ -642,31 +718,6 @@ static void frame_timer_handler(void *context) {
       normalize_angle(
           s_disk_angle
           + s_disk_velocity);
-
-  const int32_t error_after =
-      shortest_angle_difference(
-          s_disk_angle,
-          s_disk_target_angle);
-
-  const bool crossed_target =
-      (error_before > 0
-       && error_after <= 0)
-      || (error_before < 0
-          && error_after >= 0);
-
-  /*
-   * Das erste Überqueren bleibt das gewünschte Überschwingen.
-   * Ein unerwartet schnelles zweites Überqueren schaltet als
-   * Sicherheitsnetz ebenfalls in die weiche Einfangphase.
-   */
-  if (crossed_target) {
-    if (!s_disk_has_overshot) {
-      s_disk_has_overshot = true;
-    } else {
-      s_disk_settling = true;
-      s_disk_torque_mg = 0;
-    }
-  }
 
   if (s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);

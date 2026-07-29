@@ -20,24 +20,30 @@ Handgelenks aufrecht bleibt.
 - Vektorbasiert gezeichnete Ziffern
 - Gemeinsame Rotation aller vier Ziffernblöcke
 - Unterstützung für das 12- und 24-Stunden-Format
-- Frei gelagerte, gewichtete Scheibenbewegung
-- Kein Zittern bei annähernd waagerechter Haltung
-- Gleichmäßige Winkeldeadzone
-- Einmaliges natürliches Überschwingen mit weicher Endlage
-- Sensorabtastung mit 10 Hz
-- Darstellung mit ungefähr 18 Bildern pro Sekunde
+- Natürliches Ölbad-Bewegungsmodell
+- Gedämpftes Anfahren und Abbremsen
+- Einstellbares Losbrechverhalten und einstellbare Deadzone
+- Einstellbare Trägheit, Geschwindigkeit und Reibung
 - Einstellbare Schrift- und Hintergrundfarbe
 - Optional ausblendbares Schweizer Wappen im Drehpunkt
+- Sensorabtastung mit 10 Hz
+- Darstellung mit ungefähr 18 Bildern pro Sekunde
 
 ### Bewegungsmodell
 
-Die Anzeige verhält sich wie eine frei gelagerte, gewichtete Scheibe. Der
-Beschleunigungssensor erzeugt ein tangentiales Drehmoment, wodurch sich das
-gesamte Ziffernblatt flüssig nach der Schwerkraft ausrichtet.
+Die Anzeige verhält sich wie eine frei gelagerte, gewichtete Scheibe in einem
+Behälter mit zähflüssigem Öl. Das Gewicht erzeugt abhängig von der Lage der Uhr
+ein tangentiales Drehmoment. Gleichzeitig bremst der viskose Widerstand die
+Scheibe proportional zu ihrer Bewegungsgeschwindigkeit.
 
-Eine Winkeldeadzone verhindert Zittern bei kleinen Bewegungen. Beim Abbremsen
-darf die Anzeige einmal natürlich überschwingen und wird anschließend weich in
-die Endlage geführt.
+Dadurch fährt die Anzeige gedämpft an und kommt ohne künstliche Einfangphase
+wieder zur Ruhe. Eine einstellbare Deadzone und ein Losbrechmoment verhindern,
+dass kleine unbeabsichtigte Handbewegungen die Scheibe ständig in Bewegung
+setzen.
+
+Über vier Regler lassen sich Trägheit, Geschwindigkeit beziehungsweise Gewicht,
+Reibung und Deadzone anpassen. Die Mittelstellung `5 / 5 / 5 / 5` entspricht
+der sorgfältig abgestimmten Standardbewegung.
 
 ### Ursprung
 
@@ -74,24 +80,28 @@ to gravity, keeping the time upright as the wrist moves.
 - Vector-rendered digits
 - Unified rotation of all four digit blocks
 - Support for both 12-hour and 24-hour time formats
-- Freely suspended weighted-disc motion
-- No jitter when the watch is held nearly flat
-- Consistent angular deadzone
-- One natural overshoot followed by soft final settling
-- 10 Hz accelerometer sampling
-- Rendering at approximately 18 frames per second
+- Natural oil-bath motion model
+- Damped acceleration and deceleration
+- Adjustable breakaway behavior and deadzone
+- Adjustable inertia, speed, and friction
 - Configurable foreground and background colors
 - Optional Swiss emblem at the rotation pivot
+- 10 Hz accelerometer sampling
+- Rendering at approximately 18 frames per second
 
 ### Motion model
 
-The display behaves like a freely suspended weighted disc. Accelerometer input
-creates tangential torque, allowing the complete watchface to align smoothly
-with gravity.
+The display behaves like a freely suspended weighted disc inside a container
+filled with viscous oil. Depending on the orientation of the watch, the weight
+creates tangential torque while viscous resistance slows the disc in proportion
+to its angular velocity.
 
-An angular deadzone prevents jitter during small movements. As the display
-slows down, it is allowed one natural overshoot before softly settling into its
-final position.
+This makes the display accelerate and decelerate smoothly without a separate
+artificial settling phase. An adjustable deadzone and breakaway threshold keep
+small unintended wrist movements from constantly starting the disc.
+
+Four sliders control inertia, speed or effective weight, friction, and deadzone.
+The centered setting `5 / 5 / 5 / 5` is the carefully tuned default motion.
 
 ### Origin
 

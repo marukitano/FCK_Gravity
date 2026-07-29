@@ -1,7 +1,7 @@
 {
   "name": "fck-gravity",
   "author": "Marukitano",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "keywords": [
     "pebble-app",
     "pebble-watchface"
@@ -30,7 +30,11 @@
     "messageKeys": [
       "BackgroundColor",
       "ForegroundColor",
-      "ShowEmblem"
+      "ShowEmblem",
+      "Inertia",
+      "Speed",
+      "Friction",
+      "Deadzone"
     ]
   }
 }
