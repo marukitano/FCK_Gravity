@@ -1,7 +1,7 @@
 # FCK_Gravity
 
 <p align="center">
-  <img src="docs/store-preview.jpg" alt="FCK Gravity on Pebble Time 2" width="600">
+  <img src="docs/FCK_gravity.png" alt="FCK Gravity on Pebble Time 2" width="600">
 </p>
 
 FCK_Gravity is a gravity-driven vector watchface for the Pebble Time 2.
